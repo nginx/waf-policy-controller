@@ -6,19 +6,52 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/license/apache-2-0)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](/CODE_OF_CONDUCT.md)
 
-# waf_policy_controller
+# WAF Policy Controller
 
-## Requirements
+This repository contains deployment artifacts for the F5 WAF Policy Lifecycle Management system.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam elit turpis, varius et arcu elementum, viverra rhoncus sem. Aliquam nec sodales magna, et egestas enim. Mauris lobortis ultrices euismod. Pellentesque in arcu lacus. Mauris cursus laoreet nulla, ac vehicula est. Vestibulum eu mauris quis lorem consectetur aliquam ac nec quam. Vestibulum commodo pharetra mi, at bibendum neque faucibus ut. Mauris et tortor sed sem consectetur eleifend ut non magna. Praesent feugiat placerat nibh, varius viverra orci bibendum sed. Vestibulum dapibus ex ut pulvinar facilisis. Quisque sodales enim et augue tempor mattis. Suspendisse finibus congue felis, ac blandit ligula. Praesent condimentum ultrices odio quis semper. Nunc ultrices, nibh quis mattis pellentesque, elit nulla bibendum felis, quis dapibus erat turpis ac urna.
+## Repository Structure
 
-## Getting Started
+```
+├── manifests/          # Kubernetes deployment manifests
+│   ├── 1-deploy-crds.yaml
+│   ├── 2-deploy-rbac-services.yaml
+│   ├── 3-deploy-seaweedfs-operator.yaml
+│   ├── 4-deploy-seaweedfs.yaml
+│   └── 5-deploy-main.yaml
+├── api/                # API type reference documentation
+│   └── f5-waf-policy-lifecycle-management-api.md
+└── crds/               # Custom Resource Definitions
+    ├── appprotect.f5.com_aplogconfs.yaml
+    ├── appprotect.f5.com_appolicies.yaml
+    ├── appprotect.f5.com_apsignatures.yaml
+    ├── appprotect.f5.com_apusersigs.yaml
+    └── seaweed.seaweedfs.com_seaweeds.yaml
+```
 
-Duis sit amet sapien vel velit ornare vulputate. Nulla rutrum euismod risus ac efficitur. Curabitur in sagittis elit, a semper leo. Suspendisse malesuada aliquam velit, eu suscipit lorem vehicula at. Proin turpis lacus, semper in placerat in, accumsan non ipsum. Cras euismod, elit eget pretium laoreet, tortor nulla finibus tortor, nec hendrerit elit turpis ut eros. Quisque congue nisi id mauris molestie, eu condimentum dolor rutrum. Nullam eleifend elit ac lobortis tristique. Pellentesque nec tellus non mauris aliquet commodo a eu elit. Ut at feugiat metus, at tristique mauris. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae;
+## Manifests
 
-## How to Use
+Kubernetes manifests for deploying the WAF Policy Controller stack. Apply them in order:
 
-Maecenas at vehicula justo. Suspendisse posuere elementum elit vel posuere. Etiam quis pulvinar massa. Integer tempor semper risus, vitae maximus eros ullamcorper vitae. In egestas, ex vitae gravida sodales, ipsum dolor varius est, et cursus lorem dui a mi. Morbi faucibus ut nisi id faucibus. Sed quis ullamcorper ex. In et dolor id nunc interdum suscipit.
+1. **1-deploy-crds.yaml** — Custom Resource Definitions
+2. **2-deploy-rbac-services.yaml** — RBAC roles, bindings, and services
+3. **3-deploy-seaweedfs-operator.yaml** — SeaweedFS operator deployment
+4. **4-deploy-seaweedfs.yaml** — SeaweedFS storage deployment
+5. **5-deploy-main.yaml** — Main policy controller deployment
+
+## CRDs
+
+Custom Resource Definitions for:
+
+- **APLogConf** (`appprotect.f5.com`) — WAF logging configuration
+- **APPolicy** (`appprotect.f5.com`) — WAF security policy
+- **APSignatures** (`appprotect.f5.com`) — WAF attack signatures
+- **APUserSig** (`appprotect.f5.com`) — WAF user-defined signatures
+- **Seaweed** (`seaweed.seaweedfs.com`) — SeaweedFS cluster resource
+
+## API Reference
+
+The API type definitions for the `appprotect.f5.com/v1` group are documented in [`api/f5-waf-policy-lifecycle-management-api.md`](api/f5-waf-policy-lifecycle-management-api.md).
 
 ## Contributing
 

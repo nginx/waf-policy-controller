@@ -1,0 +1,432 @@
+# Source: f5-waf-policy-controller/templates/policy-controller-deployment.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: waf-policy-controller-f5-waf-policy-manager-config
+  namespace: default
+  labels:
+    helm.sh/chart: f5-waf-policy-controller-5.13.0
+    app.kubernetes.io/name: f5-waf-policy-controller
+    app.kubernetes.io/instance: waf-policy-controller
+    app.kubernetes.io/version: "5.13.0"
+    app.kubernetes.io/managed-by: Helm
+data:
+  redis-addr: "waf-policy-controller-f5-waf-redis-service:6379"
+  redis-db: "0"
+  enable-redis-queue: "true"
+---
+# Source: f5-waf-policy-controller/templates/compiler-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: waf-policy-controller-f5-waf-compiler-service
+  namespace: default
+  labels:
+    helm.sh/chart: f5-waf-policy-controller-5.13.0
+    app.kubernetes.io/name: f5-waf-policy-controller
+    app.kubernetes.io/instance: waf-policy-controller
+    app.kubernetes.io/version: "5.13.0"
+    app.kubernetes.io/managed-by: Helm
+    app: waf-policy-controller-f5-waf-compiler-service
+    component: compiler-service
+    app.kubernetes.io/component: compiler
+  annotations:
+    appprotect.f5.com/compiler-version: 5.13.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: waf-policy-controller-f5-waf-compiler-service
+      component: compiler-service
+      app.kubernetes.io/name: f5-waf-policy-controller
+      app.kubernetes.io/instance: waf-policy-controller
+  template:
+    metadata:
+      labels:
+        app: waf-policy-controller-f5-waf-compiler-service
+        component: compiler-service
+        app.kubernetes.io/name: f5-waf-policy-controller
+        app.kubernetes.io/instance: waf-policy-controller
+        app.kubernetes.io/component: compiler
+    spec:
+      automountServiceAccountToken: false
+      volumes:
+        - name: logs
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: opt-app-protect
+          emptyDir: {}
+      initContainers:
+        - name: init-app-protect
+          image: "private-registry.nginx.com/nap/waf-compiler:5.13.0"
+          command: ["sh", "-c", "cp -a /opt/app_protect/* /init_copy/"]
+          volumeMounts:
+            - name: opt-app-protect
+              mountPath: /init_copy
+        - name: wait-for-redis
+          image: "curlimages/curl:8.8.0"
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-euc"]
+          args:
+            - |
+              timeout="300"
+              end=$(( $(date +%s) + timeout ))
+              redis_host="waf-policy-controller-f5-waf-redis-service"
+              redis_port="6379"
+
+              echo "Waiting for Redis at ${redis_host}:${redis_port} (timeout ${timeout}s)"
+              until nc -z -w 2 "${redis_host}" "${redis_port}"; do
+                if [ "$(date +%s)" -ge "${end}" ]; then
+                  echo "Timed out waiting for Redis"
+                  exit 1
+                fi
+                sleep 2
+              done
+      containers:
+        - name: waf-policy-controller-f5-waf-compiler-service
+          image: "private-registry.nginx.com/nap/waf-compiler:5.13.0"
+          command: ["/opt/app_protect/bin/compiler-service"]
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POLICY_COMPILER_VERSION
+              value: 5.13.0
+            - name: REDIS_URL
+              value: "redis://waf-policy-controller-f5-waf-redis-service:6379"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: waf-policy-controller-f5-waf-redis-secret
+                  key: password
+            - name: S3_ENDPOINT
+              value: "http://waf-policy-controller-f5-waf-seaweed-filer.default.svc.cluster.local:8333"
+            - name: S3_ACCESS_KEY_ID
+              value: "adminKey"
+            - name: S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: waf-policy-controller-f5-waf-seaweedfs-auth
+                  key: seaweedfs_admin_secret
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - all
+            readOnlyRootFilesystem: true
+            runAsGroup: 101
+            runAsNonRoot: true
+            runAsUser: 101
+          volumeMounts:
+            - name: opt-app-protect
+              mountPath: /opt/app_protect
+            - name: tmp
+              mountPath: /tmp
+            - name: logs
+              mountPath: /var/log/app_protect
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+---
+# Source: f5-waf-policy-controller/templates/policy-controller-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: waf-policy-controller-f5-waf-policy-controller
+  namespace: default
+  labels:
+    helm.sh/chart: f5-waf-policy-controller-5.13.0
+    app.kubernetes.io/name: f5-waf-policy-controller
+    app.kubernetes.io/instance: waf-policy-controller
+    app.kubernetes.io/version: "5.13.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: policy-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: waf-policy-controller-f5-waf-policy-controller
+      app.kubernetes.io/name: f5-waf-policy-controller
+      app.kubernetes.io/instance: waf-policy-controller
+  template:
+    metadata:
+      labels:
+        app: waf-policy-controller-f5-waf-policy-controller
+        app.kubernetes.io/name: f5-waf-policy-controller
+        app.kubernetes.io/instance: waf-policy-controller
+    spec:
+      serviceAccountName: waf-policy-controller-f5-waf-policy-controller-sa
+      initContainers:
+        - name: wait-for-redis-and-s3
+          image: "curlimages/curl:8.8.0"
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-euc"]
+          args:
+            - |
+              timeout="300"
+              end=$(( $(date +%s) + timeout ))
+              redis_host="waf-policy-controller-f5-waf-redis-service"
+              redis_port="6379"
+              s3_url="http://waf-policy-controller-f5-waf-seaweed-filer.default.svc.cluster.local:8333"
+              curl_args=""
+
+              echo "Waiting for Redis at ${redis_host}:${redis_port} (timeout ${timeout}s)"
+              until nc -z -w 2 "${redis_host}" "${redis_port}"; do
+                if [ "$(date +%s)" -ge "${end}" ]; then
+                  echo "Timed out waiting for Redis"
+                  exit 1
+                fi
+                sleep 2
+              done
+
+              echo "Waiting for S3 endpoint ${s3_url} (timeout ${timeout}s)"
+              # SeaweedFS S3 typically returns 403 on unauthenticated root path, so we treat any HTTP response as "reachable".
+              until curl ${curl_args} -s -f -m 2 "${s3_url}" >/dev/null 2>&1 || \
+                curl ${curl_args} -s -I -m 2 "${s3_url}" 2>&1 | grep -q "HTTP/"; do
+                if [ "$(date +%s)" -ge "${end}" ]; then
+                  echo "Timed out waiting for S3 endpoint"
+                  exit 1
+                fi
+                sleep 2
+              done
+      containers:
+        - name: policy-controller
+          image: "private-registry.nginx.com/nap/waf-policy-controller:5.13.0"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: LOG_LEVEL
+              value: "info"
+            - name: S3_ENDPOINT
+              value: "http://waf-policy-controller-f5-waf-seaweed-filer.default.svc.cluster.local:8333"
+            - name: S3_ACCESS_KEY_ID
+              value: "adminKey"
+            - name: S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: waf-policy-controller-f5-waf-seaweedfs-auth
+                  key: seaweedfs_admin_secret
+            - name: DEPLOYMENT_NAME
+              value: waf-policy-controller-f5-waf-policy-controller
+            - name: POLICY_COMPILER_VERSION
+              value: 5.13.0
+            - name: REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: waf-policy-controller-f5-waf-policy-manager-config
+                  key: redis-addr
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: waf-policy-controller-f5-waf-redis-secret
+                  key: password
+            - name: REDIS_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: waf-policy-controller-f5-waf-policy-manager-config
+                  key: redis-db
+            - name: ENABLE_REDIS_QUEUE
+              valueFrom:
+                configMapKeyRef:
+                  name: waf-policy-controller-f5-waf-policy-manager-config
+                  key: enable-redis-queue
+            - name: AWS_EC2_METADATA_DISABLED
+              value: "true"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - all
+            readOnlyRootFilesystem: true
+            runAsGroup: 101
+            runAsNonRoot: true
+            runAsUser: 101
+          volumeMounts:
+            - name: transient-storage
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+      volumes:
+        - name: transient-storage
+          emptyDir:
+            sizeLimit: 200Mi
+---
+# Source: f5-waf-policy-controller/templates/redis-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: waf-policy-controller-f5-waf-redis
+  namespace: default
+  labels:
+    app: waf-policy-controller-f5-waf-redis
+    component: redis
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: waf-policy-controller
+    app.kubernetes.io/component: policyController
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: waf-policy-controller-f5-waf-redis
+      component: redis
+      app.kubernetes.io/instance: waf-policy-controller
+  template:
+    metadata:
+      labels:
+        app: waf-policy-controller-f5-waf-redis
+        component: redis
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/instance: waf-policy-controller
+        app.kubernetes.io/component: policyController
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: redis
+          image: "private-registry.nginx.com/nap/waf-redis:5.13.0"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: redis
+              containerPort: 6379
+              protocol: TCP
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: waf-policy-controller-f5-waf-redis-secret
+                  key: password
+          command:
+            - redis-server
+            - "/etc/redis/redis.conf"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - all
+            readOnlyRootFilesystem: true
+            runAsGroup: 999
+            runAsNonRoot: true
+            runAsUser: 999
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+            - name: redis-config
+              mountPath: /etc/redis
+              readOnly: true
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - -a
+                - "$(REDIS_PASSWORD)"
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - -a
+                - "$(REDIS_PASSWORD)"
+                - ping
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: redis-data
+          emptyDir: {}
+        - name: redis-config
+          secret:
+            secretName: waf-policy-controller-f5-waf-redis-secret
+            items:
+              - key: redis.conf
+                path: redis.conf
+---
+# Source: f5-waf-policy-controller/templates/apsignatures.yaml
+apiVersion: appprotect.f5.com/v1
+kind: APSignatures
+metadata:
+  name: apsignatures
+  namespace: default
+  annotations:
+    helm.sh/resource-policy: keep
+  labels:
+    helm.sh/chart: f5-waf-policy-controller-5.13.0
+    app.kubernetes.io/name: f5-waf-policy-controller
+    app.kubernetes.io/instance: waf-policy-controller
+    app.kubernetes.io/version: "5.13.0"
+    app.kubernetes.io/managed-by: Helm
+spec: {}
+---
+# Source: f5-waf-policy-controller/templates/seaweedfs.yaml
+apiVersion: seaweed.seaweedfs.com/v1
+kind: Seaweed
+metadata:
+  name: waf-policy-controller-f5-waf-seaweed
+  namespace: default
+  labels:
+    helm.sh/chart: f5-waf-policy-controller-5.13.0
+    app.kubernetes.io/name: f5-waf-policy-controller
+    app.kubernetes.io/instance: waf-policy-controller
+    app.kubernetes.io/version: "5.13.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: seaweedfs
+spec:
+  image: "private-registry.nginx.com/nap/waf-seaweedfs:5.13.0"
+  volumeServerDiskCount: 1
+  master:
+    env:
+      - name: WEED_V
+        value: "1"
+    replicas: 1
+    volumeSizeLimitMB: 1024
+  volume:
+    env:
+      - name: WEED_V
+        value: "1"
+    replicas: 3
+    requests:
+      storage: 2Gi
+  filer:
+    persistence:
+      enabled: true
+      mountPath: /data
+      subPath:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 4Gi
+    env:
+      - name: WEED_V
+        value: "1"
+    replicas: 1
+    # HTTP port of the filer
+    port: 8888
+    s3Port: 8333
+    s3HttpsPort: 0
+    s3:
+      enabled: true
+      configSecret:
+        name: waf-policy-controller-f5-waf-seaweedfs-auth
+        key: config.json
+    config: |
+      [leveldb2]
+      enabled = true
+      dir = "/data/filerldb2"
+  certificates:
+    enabled: false
+    caSecretName: waf-policy-controller-f5-waf-seaweedfs-ca-cert
+    masterSecretName: waf-policy-controller-f5-waf-seaweedfs-master-cert
+    volumeSecretName: waf-policy-controller-f5-waf-seaweedfs-volume-cert
+    filerSecretName: waf-policy-controller-f5-waf-seaweedfs-filer-cert
+    clientSecretName: waf-policy-controller-f5-waf-seaweedfs-client-cert
+    # Name of ConfigMap containing security.toml
+    securityConfigMapName: waf-policy-controller-f5-waf-seaweed-security-config
+    warnBefore: 360h

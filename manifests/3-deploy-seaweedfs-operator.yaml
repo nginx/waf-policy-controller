@@ -1,0 +1,70 @@
+# Source: f5-waf-policy-controller/charts/seaweedfs-operator/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: waf-policy-controller-seaweedfs-operator
+  namespace: default
+  labels:
+    helm.sh/chart: seaweedfs-operator-5.13.0
+    app.kubernetes.io/name: seaweedfs-operator
+    app.kubernetes.io/instance: waf-policy-controller
+    app.kubernetes.io/version: "5.13.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: seaweedfs-operator
+      app.kubernetes.io/instance: waf-policy-controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: seaweedfs-operator
+        app.kubernetes.io/instance: waf-policy-controller
+    spec:
+      serviceAccountName: waf-policy-controller-seaweedfs-operator
+      securityContext:
+        fsGroup: 65532
+        runAsNonRoot: true
+        runAsUser: 65532
+      containers:
+        - name: seaweedfs-operator
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          image: "private-registry.nginx.com/nap/waf-seaweedfs-operator:5.13.0"
+          imagePullPolicy: IfNotPresent
+          command:
+            - /manager
+          args:
+            - --leader-elect
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: ENABLE_WEBHOOKS
+              value: "false"
+            - name: WATCH_NAMESPACES
+              value: "default"
+            - name: DNS_LOOKUP_MAX_ATTEMPTS
+              value: "180"
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: https
+              containerPort: 443
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 500Mi
+            requests:
+              cpu: 100m
+              memory: 50Mi
+      terminationGracePeriodSeconds: 10

@@ -1,0 +1,65 @@
+# Source: f5-waf-policy-controller/templates/seaweedfs.yaml
+apiVersion: seaweed.seaweedfs.com/v1
+kind: Seaweed
+metadata:
+  name: waf-policy-controller-f5-waf-seaweed
+  namespace: default
+  labels:
+    helm.sh/chart: f5-waf-policy-controller-5.13.0
+    app.kubernetes.io/name: f5-waf-policy-controller
+    app.kubernetes.io/instance: waf-policy-controller
+    app.kubernetes.io/version: "5.13.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: seaweedfs
+spec:
+  image: "private-registry.nginx.com/nap/waf-seaweedfs:5.13.0"
+  volumeServerDiskCount: 1
+  master:
+    env:
+      - name: WEED_V
+        value: "1"
+    replicas: 1
+    volumeSizeLimitMB: 1024
+  volume:
+    env:
+      - name: WEED_V
+        value: "1"
+    replicas: 3
+    requests:
+      storage: 2Gi
+  filer:
+    persistence:
+      enabled: true
+      mountPath: /data
+      subPath:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 4Gi
+    env:
+      - name: WEED_V
+        value: "1"
+    replicas: 1
+    # HTTP port of the filer
+    port: 8888
+    s3Port: 8333
+    s3HttpsPort: 0
+    s3:
+      enabled: true
+      configSecret:
+        name: waf-policy-controller-f5-waf-seaweedfs-auth
+        key: config.json
+    config: |
+      [leveldb2]
+      enabled = true
+      dir = "/data/filerldb2"
+  certificates:
+    enabled: false
+    caSecretName: waf-policy-controller-f5-waf-seaweedfs-ca-cert
+    masterSecretName: waf-policy-controller-f5-waf-seaweedfs-master-cert
+    volumeSecretName: waf-policy-controller-f5-waf-seaweedfs-volume-cert
+    filerSecretName: waf-policy-controller-f5-waf-seaweedfs-filer-cert
+    clientSecretName: waf-policy-controller-f5-waf-seaweedfs-client-cert
+    # Name of ConfigMap containing security.toml
+    securityConfigMapName: waf-policy-controller-f5-waf-seaweed-security-config
+    warnBefore: 360h

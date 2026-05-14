@@ -1,0 +1,333 @@
+# Source: f5-waf-policy-controller/charts/seaweedfs-operator/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: waf-policy-controller-seaweedfs-operator
+  namespace: default
+  labels:
+    helm.sh/chart: seaweedfs-operator-5.13.0
+    app.kubernetes.io/name: seaweedfs-operator
+    app.kubernetes.io/instance: waf-policy-controller
+    app.kubernetes.io/version: "5.13.0"
+    app.kubernetes.io/managed-by: Helm
+automountServiceAccountToken: true
+---
+# Source: f5-waf-policy-controller/templates/rbac.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: waf-policy-controller-f5-waf-policy-controller-sa
+  namespace: default
+  labels:
+    helm.sh/chart: f5-waf-policy-controller-5.13.0
+    app.kubernetes.io/name: f5-waf-policy-controller
+    app.kubernetes.io/instance: waf-policy-controller
+    app.kubernetes.io/version: "5.13.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: policy-controller
+---
+# Source: f5-waf-policy-controller/charts/seaweedfs-operator/templates/rbac/seaweed_editor_role.yaml
+# permissions for end users to edit seaweeds.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: seaweed-editor-role
+rules:
+  - apiGroups:
+      - seaweed.seaweedfs.com
+    resources:
+      - seaweeds
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - seaweed.seaweedfs.com
+    resources:
+      - seaweeds/status
+    verbs:
+      - get
+---
+# Source: f5-waf-policy-controller/charts/seaweedfs-operator/templates/rbac/seaweed_viewer_role.yaml
+# permissions for end users to view seaweeds.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: seaweed-viewer-role
+rules:
+  - apiGroups:
+      - seaweed.seaweedfs.com
+    resources:
+      - seaweeds
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - seaweed.seaweedfs.com
+    resources:
+      - seaweeds/status
+    verbs:
+      - get
+---
+# Source: f5-waf-policy-controller/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: waf-policy-controller-f5-waf-policy-controller-role
+  labels:
+    helm.sh/chart: f5-waf-policy-controller-5.13.0
+    app.kubernetes.io/name: f5-waf-policy-controller
+    app.kubernetes.io/instance: waf-policy-controller
+    app.kubernetes.io/version: "5.13.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: policy-controller
+rules:
+  - apiGroups: ["appprotect.f5.com"]
+    resources: ["appolicies", "aplogconfs", "apusersigs", "apsignatures"]
+    verbs: ["get", "list", "watch", "update", "patch"]
+  - apiGroups: ["appprotect.f5.com"]
+    resources: ["appolicies/status", "aplogconfs/status", "apusersigs/status", "apsignatures/status"]
+    verbs: ["get", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch", "update"]
+---
+# Source: f5-waf-policy-controller/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: waf-policy-controller-f5-waf-policy-controller-clusterrolebinding
+  labels:
+    helm.sh/chart: f5-waf-policy-controller-5.13.0
+    app.kubernetes.io/name: f5-waf-policy-controller
+    app.kubernetes.io/instance: waf-policy-controller
+    app.kubernetes.io/version: "5.13.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: policy-controller
+subjects:
+  - kind: ServiceAccount
+    name: waf-policy-controller-f5-waf-policy-controller-sa
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: waf-policy-controller-f5-waf-policy-controller-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: f5-waf-policy-controller/charts/seaweedfs-operator/templates/rbac/leader_election_role.yaml
+# permissions to do leader election.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: waf-policy-controller-seaweedfs-operator-leader-election-role
+  namespace: default
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps/status
+    verbs:
+      - get
+      - update
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - create
+      - get
+      - list
+      - update
+---
+# Source: f5-waf-policy-controller/charts/seaweedfs-operator/templates/rbac/role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: waf-policy-controller-seaweedfs-operator-manager-role
+  namespace: default
+rules:
+  - apiGroups:
+      - apps
+    resources:
+      - statefulsets
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+      - watch
+      - list
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - extensions
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - seaweed.seaweedfs.com
+    resources:
+      - seaweeds
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - seaweed.seaweedfs.com
+    resources:
+      - seaweeds/status
+    verbs:
+      - get
+      - patch
+      - update
+---
+# Source: f5-waf-policy-controller/charts/seaweedfs-operator/templates/rbac/leader_election_role_binding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: waf-policy-controller-seaweedfs-operator-leader-election-rolebinding
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: waf-policy-controller-seaweedfs-operator-leader-election-role
+subjects:
+  - kind: ServiceAccount
+    name: waf-policy-controller-seaweedfs-operator
+    namespace: default
+---
+# Source: f5-waf-policy-controller/charts/seaweedfs-operator/templates/rbac/role_binding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: waf-policy-controller-seaweedfs-operator-manager-rolebinding
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: waf-policy-controller-seaweedfs-operator-manager-role
+subjects:
+  - kind: ServiceAccount
+    name: waf-policy-controller-seaweedfs-operator
+    namespace: default
+---
+# Source: f5-waf-policy-controller/charts/seaweedfs-operator/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: waf-policy-controller-seaweedfs-operator
+  namespace: default
+  labels:
+    app: waf-policy-controller-seaweedfs-operator
+    app.kubernetes.io/component: metrics
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  selector:
+    app.kubernetes.io/name: seaweedfs-operator
+    app.kubernetes.io/instance: waf-policy-controller
+---
+# Source: f5-waf-policy-controller/templates/redis-deployment.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: waf-policy-controller-f5-waf-redis-service
+  namespace: default
+  labels:
+    app: waf-policy-controller-f5-waf-redis
+    component: redis
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: waf-policy-controller
+    app.kubernetes.io/component: policyController
+spec:
+  type: ClusterIP
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+      protocol: TCP
+  selector:
+    app: waf-policy-controller-f5-waf-redis
+    component: redis
+    app.kubernetes.io/instance: waf-policy-controller
