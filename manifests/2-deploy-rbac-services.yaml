@@ -26,6 +26,102 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: policy-controller
 ---
+# Source: f5-waf-policy-controller/charts/seaweedfs-operator/templates/rbac/role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: waf-policy-controller-seaweedfs-operator-manager-role
+rules:
+  - apiGroups:
+      - apps
+    resources:
+      - statefulsets
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+      - watch
+      - list
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - seaweed.seaweedfs.com
+    resources:
+      - seaweeds
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - seaweed.seaweedfs.com
+    resources:
+      - seaweeds/status
+    verbs:
+      - get
+      - patch
+      - update
+---
 # Source: f5-waf-policy-controller/charts/seaweedfs-operator/templates/rbac/seaweed_editor_role.yaml
 # permissions for end users to edit seaweeds.
 apiVersion: rbac.authorization.k8s.io/v1
@@ -100,6 +196,20 @@ rules:
     resources: ["events"]
     verbs: ["create", "patch", "update"]
 ---
+# Source: f5-waf-policy-controller/charts/seaweedfs-operator/templates/rbac/role_binding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: waf-policy-controller-seaweedfs-operator-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: waf-policy-controller-seaweedfs-operator-manager-role
+subjects:
+  - kind: ServiceAccount
+    name: waf-policy-controller-seaweedfs-operator
+    namespace: default
+---
 # Source: f5-waf-policy-controller/templates/rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -166,99 +276,6 @@ rules:
       - list
       - update
 ---
-# Source: f5-waf-policy-controller/charts/seaweedfs-operator/templates/rbac/role.yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: waf-policy-controller-seaweedfs-operator-manager-role
-  namespace: default
-rules:
-  - apiGroups:
-      - apps
-    resources:
-      - statefulsets
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - ""
-    resources:
-      - configmaps
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - ""
-    resources:
-      - secrets
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - ""
-    resources:
-      - pods
-    verbs:
-      - get
-      - watch
-      - list
-  - apiGroups:
-      - ""
-    resources:
-      - services
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - extensions
-      - networking.k8s.io
-    resources:
-      - ingresses
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - seaweed.seaweedfs.com
-    resources:
-      - seaweeds
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - seaweed.seaweedfs.com
-    resources:
-      - seaweeds/status
-    verbs:
-      - get
-      - patch
-      - update
----
 # Source: f5-waf-policy-controller/charts/seaweedfs-operator/templates/rbac/leader_election_role_binding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -269,21 +286,6 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: waf-policy-controller-seaweedfs-operator-leader-election-role
-subjects:
-  - kind: ServiceAccount
-    name: waf-policy-controller-seaweedfs-operator
-    namespace: default
----
-# Source: f5-waf-policy-controller/charts/seaweedfs-operator/templates/rbac/role_binding.yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: waf-policy-controller-seaweedfs-operator-manager-rolebinding
-  namespace: default
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: waf-policy-controller-seaweedfs-operator-manager-role
 subjects:
   - kind: ServiceAccount
     name: waf-policy-controller-seaweedfs-operator

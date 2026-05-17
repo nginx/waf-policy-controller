@@ -5849,28 +5849,6 @@ spec:
                   additionalProperties:
                     type: string
                   type: object
-                certificates:
-                  properties:
-                    caSecretName:
-                      type: string
-                    clientSecretName:
-                      type: string
-                    commonName:
-                      type: string
-                    enabled:
-                      default: false
-                      type: boolean
-                    filerSecretName:
-                      type: string
-                    masterSecretName:
-                      type: string
-                    securityConfigMapName:
-                      type: string
-                    volumeSecretName:
-                      type: string
-                    warnBefore:
-                      type: string
-                  type: object
                 enablePVReclaim:
                   type: boolean
                 filer:
@@ -6519,8 +6497,6 @@ spec:
                         volumeName:
                           type: string
                       type: object
-                    port:
-                      type: integer
                     priorityClassName:
                       type: string
                     replicas:
@@ -6553,10 +6529,6 @@ spec:
                           default: true
                           type: boolean
                       type: object
-                    s3HttpsPort:
-                      type: integer
-                    s3Port:
-                      type: integer
                     schedulerName:
                       type: string
                     service:

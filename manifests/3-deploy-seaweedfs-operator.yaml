@@ -43,16 +43,8 @@ spec:
           args:
             - --leader-elect
           env:
-            - name: POD_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
             - name: ENABLE_WEBHOOKS
               value: "false"
-            - name: WATCH_NAMESPACES
-              value: "default"
-            - name: DNS_LOOKUP_MAX_ATTEMPTS
-              value: "180"
           ports:
             - name: http
               containerPort: 8080
