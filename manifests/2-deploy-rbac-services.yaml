@@ -5,10 +5,10 @@ metadata:
   name: waf-policy-controller-seaweedfs-operator
   namespace: default
   labels:
-    helm.sh/chart: seaweedfs-operator-5.13.0
+    helm.sh/chart: seaweedfs-operator-5.13.1
     app.kubernetes.io/name: seaweedfs-operator
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/version: "5.13.0"
+    app.kubernetes.io/version: "5.13.1"
     app.kubernetes.io/managed-by: Helm
 automountServiceAccountToken: true
 ---
@@ -19,10 +19,10 @@ metadata:
   name: waf-policy-controller-f5-waf-policy-controller-sa
   namespace: default
   labels:
-    helm.sh/chart: f5-waf-policy-controller-5.13.0
+    helm.sh/chart: f5-waf-policy-controller-5.13.1
     app.kubernetes.io/name: f5-waf-policy-controller
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/version: "5.13.0"
+    app.kubernetes.io/version: "5.13.1"
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: policy-controller
 ---
@@ -80,10 +80,10 @@ kind: ClusterRole
 metadata:
   name: waf-policy-controller-f5-waf-policy-controller-role
   labels:
-    helm.sh/chart: f5-waf-policy-controller-5.13.0
+    helm.sh/chart: f5-waf-policy-controller-5.13.1
     app.kubernetes.io/name: f5-waf-policy-controller
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/version: "5.13.0"
+    app.kubernetes.io/version: "5.13.1"
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: policy-controller
 rules:
@@ -106,10 +106,10 @@ kind: ClusterRoleBinding
 metadata:
   name: waf-policy-controller-f5-waf-policy-controller-clusterrolebinding
   labels:
-    helm.sh/chart: f5-waf-policy-controller-5.13.0
+    helm.sh/chart: f5-waf-policy-controller-5.13.1
     app.kubernetes.io/name: f5-waf-policy-controller
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/version: "5.13.0"
+    app.kubernetes.io/version: "5.13.1"
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: policy-controller
 subjects:
