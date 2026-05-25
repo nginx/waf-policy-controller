@@ -5,10 +5,10 @@ metadata:
   name: waf-policy-controller-seaweedfs-operator
   namespace: default
   labels:
-    helm.sh/chart: seaweedfs-operator-5.13.0
+    helm.sh/chart: seaweedfs-operator-5.13.1
     app.kubernetes.io/name: seaweedfs-operator
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/version: "5.13.0"
+    app.kubernetes.io/version: "5.13.1"
     app.kubernetes.io/managed-by: Helm
 spec:
   replicas: 1
@@ -36,7 +36,7 @@ spec:
                 - ALL
             readOnlyRootFilesystem: true
             runAsNonRoot: true
-          image: "private-registry.nginx.com/nap/waf-seaweedfs-operator:5.13.0"
+          image: "private-registry.nginx.com/nap/waf-seaweedfs-operator:5.13.1"
           imagePullPolicy: IfNotPresent
           command:
             - /manager
