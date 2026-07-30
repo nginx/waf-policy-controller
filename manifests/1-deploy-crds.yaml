@@ -123,6 +123,15 @@ spec:
                   required:
                     - state
                   type: object
+                inProgressBundleLocation:
+                  description: |-
+                    InProgressBundleLocation stores the S3 location of the bundle currently
+                    being compiled. It is set atomically with the two-phase claim (before
+                    the compiler gRPC call) and cleared on success (once Bundle.Location
+                    takes its place) or failure. Housekeeping treats it as a protected
+                    reference so the shared bundles/ cleanup pass cannot delete an in-flight
+                    bundle whose LastModified is older than the current round's roundStart.
+                  type: string
                 inProgressGeneration:
                   description: |-
                     InProgressGeneration records the metadata.generation for which a
@@ -330,1718 +339,8 @@ spec:
                 policy:
                   description: Defines the App Protect policy - can be inline policy or reference
                   properties:
-                    $ref:
-                      description: Reference to external JSON policy file
-                      type: string
-                    applicationLanguage:
-                      type: string
-                    blocking-settings:
-                      properties:
-                        evasions:
-                          items:
-                            properties:
-                              description:
-                                type: string
-                              enabled:
-                                type: boolean
-                              maxDecodingPasses:
-                                type: integer
-                            type: object
-                            x-kubernetes-preserve-unknown-fields: true
-                          type: array
-                        http-protocols:
-                          items:
-                            properties:
-                              description:
-                                type: string
-                              enabled:
-                                type: boolean
-                              maxCookies:
-                                maximum: 100
-                                minimum: 1
-                                type: integer
-                              maxHeaders:
-                                maximum: 150
-                                minimum: 1
-                                type: integer
-                              maxParams:
-                                maximum: 5000
-                                minimum: 1
-                                type: integer
-                            type: object
-                            x-kubernetes-preserve-unknown-fields: true
-                          type: array
-                        violations:
-                          items:
-                            properties:
-                              alarm:
-                                type: boolean
-                              block:
-                                type: boolean
-                              description:
-                                type: string
-                              name:
-                                type: string
-                            type: object
-                            x-kubernetes-preserve-unknown-fields: true
-                          type: array
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    blockingSettingReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    bot-defense:
-                      properties:
-                        mitigations:
-                          properties:
-                            anomalies:
-                              items:
-                                properties:
-                                  $action:
-                                    type: string
-                                  action:
-                                    type: string
-                                  name:
-                                    type: string
-                                  scoreThreshold:
-                                    anyOf:
-                                      - type: integer
-                                      - type: string
-                                    x-kubernetes-int-or-string: true
-                                type: object
-                                x-kubernetes-preserve-unknown-fields: true
-                              type: array
-                            browsers:
-                              items:
-                                properties:
-                                  $action:
-                                    type: string
-                                  action:
-                                    type: string
-                                  maxVersion:
-                                    maximum: 2147483647
-                                    minimum: 0
-                                    type: integer
-                                  minVersion:
-                                    maximum: 2147483647
-                                    minimum: 0
-                                    type: integer
-                                  name:
-                                    type: string
-                                type: object
-                                x-kubernetes-preserve-unknown-fields: true
-                              type: array
-                            classes:
-                              items:
-                                properties:
-                                  action:
-                                    type: string
-                                  name:
-                                    type: string
-                                type: object
-                                x-kubernetes-preserve-unknown-fields: true
-                              type: array
-                            signatures:
-                              items:
-                                properties:
-                                  $action:
-                                    type: string
-                                  action:
-                                    type: string
-                                  name:
-                                    type: string
-                                type: object
-                                x-kubernetes-preserve-unknown-fields: true
-                              type: array
-                          type: object
-                          x-kubernetes-preserve-unknown-fields: true
-                        settings:
-                          properties:
-                            caseSensitiveHttpHeaders:
-                              type: boolean
-                            isEnabled:
-                              type: boolean
-                          type: object
-                          x-kubernetes-preserve-unknown-fields: true
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    browser-definitions:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          isUserDefined:
-                            type: boolean
-                          matchRegex:
-                            type: string
-                          matchString:
-                            type: string
-                          name:
-                            type: string
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    caseInsensitive:
-                      type: boolean
-                    character-sets:
-                      items:
-                        properties:
-                          characterSet:
-                            items:
-                              properties:
-                                isAllowed:
-                                  type: boolean
-                                metachar:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          characterSetType:
-                            type: string
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    characterSetReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    cookie-settings:
-                      properties:
-                        maximumCookieHeaderLength:
-                          anyOf:
-                            - type: integer
-                            - type: string
-                          x-kubernetes-int-or-string: true
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    cookieReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    cookieSettingsReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    cookies:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          accessibleOnlyThroughTheHttpProtocol:
-                            type: boolean
-                          attackSignaturesCheck:
-                            type: boolean
-                          decodeValueAsBase64:
-                            type: string
-                          enforcementType:
-                            type: string
-                          insertSameSiteAttribute:
-                            type: string
-                          maskValueInLogs:
-                            type: boolean
-                          name:
-                            type: string
-                          securedOverHttpsConnection:
-                            type: boolean
-                          signatureOverrides:
-                            items:
-                              properties:
-                                enabled:
-                                  type: boolean
-                                name:
-                                  type: string
-                                signatureId:
-                                  type: integer
-                                tag:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          type:
-                            type: string
-                          wildcardOrder:
-                            type: integer
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    csrf-protection:
-                      properties:
-                        enabled:
-                          type: boolean
-                        expirationTimeInSeconds:
-                          pattern: disabled|\d+
-                          type: string
-                        sslOnly:
-                          type: boolean
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    csrf-urls:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          enforcementAction:
-                            type: string
-                          method:
-                            type: string
-                          url:
-                            type: string
-                          wildcardOrder:
-                            type: integer
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    data-guard:
-                      properties:
-                        creditCardNumbers:
-                          type: boolean
-                        customPatterns:
-                          type: boolean
-                        customPatternsList:
-                          items:
-                            type: string
-                          type: array
-                        enabled:
-                          type: boolean
-                        enforcementMode:
-                          type: string
-                        enforcementUrls:
-                          items:
-                            type: string
-                          type: array
-                        firstCustomCharactersToExpose:
-                          type: integer
-                        lastCcnDigitsToExpose:
-                          type: integer
-                        lastCustomCharactersToExpose:
-                          type: integer
-                        lastSsnDigitsToExpose:
-                          type: integer
-                        maskData:
-                          type: boolean
-                        usSocialSecurityNumbers:
-                          type: boolean
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    dataGuardReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    description:
-                      type: string
-                    disallowed-geolocations:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          countryCode:
-                            type: string
-                          countryName:
-                            type: string
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    disallowedGeolocationReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    enablePassiveMode:
-                      type: boolean
-                    enforcementMode:
-                      type: string
-                    enforcer-settings:
-                      properties:
-                        enforcerStateCookies:
-                          properties:
-                            httpOnlyAttribute:
-                              type: boolean
-                            sameSiteAttribute:
-                              type: string
-                            secureAttribute:
-                              type: string
-                          type: object
-                          x-kubernetes-preserve-unknown-fields: true
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    externalReferenceDetails:
-                      description: |-
-                        External reference details for policies fetched from Git repositories
-                        Required when $ref points to a Git repository
-                      properties:
-                        authentication:
-                          description: Authentication configuration for accessing Git repositories
-                          properties:
-                            token:
-                              description: Token for authentication (contains the name of the Kubernetes secret)
-                              type: string
-                          type: object
-                          x-kubernetes-preserve-unknown-fields: true
-                        repositoryDetails:
-                          description: |-
-                            Repository details for Git repositories
-                            Required when $ref points to a Git repository, optional for HTTPS URLs
-                          properties:
-                            ref:
-                              description: |-
-                                Git reference: branch, tag, or commit SHA (required).
-                              minLength: 1
-                              type: string
-                            repository:
-                              description: Git repository URL (required)
-                              minLength: 1
-                              type: string
-                          required:
-                            - ref
-                            - repository
-                          type: object
-                          x-kubernetes-preserve-unknown-fields: true
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    filetypeReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    filetypes:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          allowed:
-                            type: boolean
-                          checkPostDataLength:
-                            type: boolean
-                          checkQueryStringLength:
-                            type: boolean
-                          checkRequestLength:
-                            type: boolean
-                          checkUrlLength:
-                            type: boolean
-                          name:
-                            type: string
-                          postDataLength:
-                            type: integer
-                          queryStringLength:
-                            type: integer
-                          requestLength:
-                            type: integer
-                          responseCheck:
-                            type: boolean
-                          type:
-                            type: string
-                          urlLength:
-                            type: integer
-                          wildcardOrder:
-                            type: integer
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    fullPath:
-                      type: string
-                    general:
-                      properties:
-                        allowedResponseCodes:
-                          items:
-                            format: int32
-                            maximum: 999
-                            minimum: 100
-                            type: integer
-                          type: array
-                        customXffHeaders:
-                          items:
-                            type: string
-                          type: array
-                        maskCreditCardNumbersInRequest:
-                          type: boolean
-                        trustXff:
-                          type: boolean
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    generalReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    graphql-profiles:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          attackSignaturesCheck:
-                            type: boolean
-                          defenseAttributes:
-                            properties:
-                              allowIntrospectionQueries:
-                                type: boolean
-                              maximumBatchedQueries:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              maximumQueryCost:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              maximumStructureDepth:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              maximumTotalLength:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              maximumValueLength:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              tolerateParsingWarnings:
-                                type: boolean
-                            type: object
-                            x-kubernetes-preserve-unknown-fields: true
-                          description:
-                            type: string
-                          metacharElementCheck:
-                            type: boolean
-                          metacharOverrides:
-                            items:
-                              properties:
-                                isAllowed:
-                                  type: boolean
-                                metachar:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          name:
-                            type: string
-                          responseEnforcement:
-                            properties:
-                              blockDisallowedPatterns:
-                                type: boolean
-                              disallowedPatterns:
-                                items:
-                                  type: string
-                                type: array
-                            type: object
-                            x-kubernetes-preserve-unknown-fields: true
-                          sensitiveData:
-                            items:
-                              properties:
-                                parameterName:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          signatureOverrides:
-                            items:
-                              properties:
-                                enabled:
-                                  type: boolean
-                                name:
-                                  type: string
-                                signatureId:
-                                  type: integer
-                                tag:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    grpc-profiles:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          associateUrls:
-                            type: boolean
-                          attackSignaturesCheck:
-                            type: boolean
-                          decodeStringValuesAsBase64:
-                            type: string
-                          defenseAttributes:
-                            properties:
-                              allowUnknownFields:
-                                type: boolean
-                              maximumDataLength:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                            type: object
-                            x-kubernetes-preserve-unknown-fields: true
-                          description:
-                            type: string
-                          hasIdlFiles:
-                            type: boolean
-                          idlFiles:
-                            items:
-                              properties:
-                                idlFile:
-                                  properties:
-                                    contents:
-                                      type: string
-                                    fileName:
-                                      type: string
-                                    isBase64:
-                                      type: boolean
-                                  type: object
-                                  x-kubernetes-preserve-unknown-fields: true
-                                importUrl:
-                                  type: string
-                                isPrimary:
-                                  type: boolean
-                                primaryIdlFileName:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          metacharCheck:
-                            type: boolean
-                          metacharElementCheck:
-                            type: boolean
-                          name:
-                            type: string
-                          signatureOverrides:
-                            items:
-                              properties:
-                                enabled:
-                                  type: boolean
-                                name:
-                                  type: string
-                                signatureId:
-                                  type: integer
-                                tag:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    header-settings:
-                      properties:
-                        maximumHttpHeaderLength:
-                          anyOf:
-                            - type: integer
-                            - type: string
-                          x-kubernetes-int-or-string: true
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    headerReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    headerSettingsReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    headers:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          allowRepeatedOccurrences:
-                            type: boolean
-                          base64Decoding:
-                            type: boolean
-                          checkSignatures:
-                            type: boolean
-                          decodeValueAsBase64:
-                            type: string
-                          htmlNormalization:
-                            type: boolean
-                          mandatory:
-                            type: boolean
-                          maskValueInLogs:
-                            type: boolean
-                          name:
-                            type: string
-                          normalizationViolations:
-                            type: boolean
-                          percentDecoding:
-                            type: boolean
-                          signatureOverrides:
-                            items:
-                              properties:
-                                enabled:
-                                  type: boolean
-                                name:
-                                  type: string
-                                signatureId:
-                                  type: integer
-                                tag:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          type:
-                            type: string
-                          urlNormalization:
-                            type: boolean
-                          wildcardOrder:
-                            type: integer
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    host-names:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          includeSubdomains:
-                            type: boolean
-                          name:
-                            type: string
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    idl-files:
-                      items:
-                        properties:
-                          contents:
-                            type: string
-                          fileName:
-                            type: string
-                          isBase64:
-                            type: boolean
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    json-profiles:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          attackSignaturesCheck:
-                            type: boolean
-                          defenseAttributes:
-                            properties:
-                              maximumArrayLength:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              maximumStructureDepth:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              maximumTotalLengthOfJSONData:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              maximumValueLength:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              tolerateJSONParsingWarnings:
-                                type: boolean
-                            type: object
-                            x-kubernetes-preserve-unknown-fields: true
-                          description:
-                            type: string
-                          handleJsonValuesAsParameters:
-                            type: boolean
-                          hasValidationFiles:
-                            type: boolean
-                          metacharOverrides:
-                            items:
-                              properties:
-                                isAllowed:
-                                  type: boolean
-                                metachar:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          name:
-                            type: string
-                          signatureOverrides:
-                            items:
-                              properties:
-                                enabled:
-                                  type: boolean
-                                name:
-                                  type: string
-                                signatureId:
-                                  type: integer
-                                tag:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          validationFiles:
-                            items:
-                              properties:
-                                importUrl:
-                                  type: string
-                                isPrimary:
-                                  type: boolean
-                                jsonValidationFile:
-                                  properties:
-                                    $action:
-                                      type: string
-                                    contents:
-                                      type: string
-                                    fileName:
-                                      type: string
-                                    isBase64:
-                                      type: boolean
-                                  type: object
-                                  x-kubernetes-preserve-unknown-fields: true
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    json-validation-files:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          contents:
-                            type: string
-                          fileName:
-                            type: string
-                          isBase64:
-                            type: boolean
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    jsonProfileReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    jsonValidationFileReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    methodReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    methods:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          name:
-                            type: string
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
                     name:
                       type: string
-                    open-api-files:
-                      items:
-                        properties:
-                          link:
-                            pattern: ^http
-                            type: string
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    parameterReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    parameters:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          allowEmptyValue:
-                            type: boolean
-                          allowRepeatedParameterName:
-                            type: boolean
-                          arraySerializationFormat:
-                            type: string
-                          attackSignaturesCheck:
-                            type: boolean
-                          checkMaxValue:
-                            type: boolean
-                          checkMaxValueLength:
-                            type: boolean
-                          checkMetachars:
-                            type: boolean
-                          checkMinValue:
-                            type: boolean
-                          checkMinValueLength:
-                            type: boolean
-                          checkMultipleOfValue:
-                            type: boolean
-                          contentProfile:
-                            properties:
-                              name:
-                                type: string
-                            type: object
-                            x-kubernetes-preserve-unknown-fields: true
-                          dataType:
-                            type: string
-                          decodeValueAsBase64:
-                            type: string
-                          disallowFileUploadOfExecutables:
-                            type: boolean
-                          enableRegularExpression:
-                            type: boolean
-                          exclusiveMax:
-                            type: boolean
-                          exclusiveMin:
-                            type: boolean
-                          isBase64:
-                            type: boolean
-                          isCookie:
-                            type: boolean
-                          isHeader:
-                            type: boolean
-                          level:
-                            type: string
-                          mandatory:
-                            type: boolean
-                          maximumLength:
-                            type: integer
-                          maximumValue:
-                            type: integer
-                          metacharsOnParameterValueCheck:
-                            type: boolean
-                          minimumLength:
-                            type: integer
-                          minimumValue:
-                            type: integer
-                          multipleOf:
-                            type: integer
-                          name:
-                            type: string
-                          nameMetacharOverrides:
-                            items:
-                              properties:
-                                isAllowed:
-                                  type: boolean
-                                metachar:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          objectSerializationStyle:
-                            type: string
-                          parameterEnumValues:
-                            items:
-                              type: string
-                            type: array
-                          parameterLocation:
-                            type: string
-                          regularExpression:
-                            type: string
-                          sensitiveParameter:
-                            type: boolean
-                          signatureOverrides:
-                            items:
-                              properties:
-                                enabled:
-                                  type: boolean
-                                name:
-                                  type: string
-                                signatureId:
-                                  type: integer
-                                tag:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          staticValues:
-                            type: string
-                          type:
-                            type: string
-                          url:
-                            properties:
-                              method:
-                                type: string
-                              name:
-                                type: string
-                              protocol:
-                                type: string
-                              type:
-                                type: string
-                            type: object
-                            x-kubernetes-preserve-unknown-fields: true
-                          valueMetacharOverrides:
-                            items:
-                              properties:
-                                isAllowed:
-                                  type: boolean
-                                metachar:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          valueType:
-                            type: string
-                          wildcardOrder:
-                            type: integer
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    response-pages:
-                      items:
-                        properties:
-                          ajaxActionType:
-                            type: string
-                          ajaxCustomContent:
-                            type: string
-                          ajaxEnabled:
-                            type: boolean
-                          ajaxPopupMessage:
-                            type: string
-                          ajaxRedirectUrl:
-                            type: string
-                          grpcStatusCode:
-                            type: string
-                          grpcStatusMessage:
-                            type: string
-                          responseActionType:
-                            type: string
-                          responseContent:
-                            type: string
-                          responseHeader:
-                            type: string
-                          responsePageType:
-                            type: string
-                          responseRedirectUrl:
-                            type: string
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    responsePageReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    sensitive-parameters:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          name:
-                            type: string
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    sensitiveParameterReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    server-technologies:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          serverTechnologyName:
-                            type: string
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    serverTechnologyReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    signature-requirements:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          tag:
-                            type: string
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    signature-sets:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          alarm:
-                            type: boolean
-                          block:
-                            type: boolean
-                          learn:
-                            type: boolean
-                          name:
-                            type: string
-                          signatureSet:
-                            properties:
-                              filter:
-                                properties:
-                                  accuracyFilter:
-                                    enum:
-                                      - all
-                                      - eq
-                                      - ge
-                                      - le
-                                    type: string
-                                  accuracyValue:
-                                    enum:
-                                      - high
-                                      - low
-                                      - medium
-                                    type: string
-                                  attackType:
-                                    properties:
-                                      name:
-                                        type: string
-                                    type: object
-                                    x-kubernetes-preserve-unknown-fields: true
-                                  hasCve:
-                                    enum:
-                                      - all
-                                      - false
-                                      - true
-                                    type: string
-                                  lastUpdatedFilter:
-                                    enum:
-                                      - all
-                                      - eq
-                                      - ge
-                                      - le
-                                    type: string
-                                  lastUpdatedValue:
-                                    type: string
-                                  riskFilter:
-                                    enum:
-                                      - all
-                                      - eq
-                                      - ge
-                                      - le
-                                    type: string
-                                  riskValue:
-                                    enum:
-                                      - high
-                                      - low
-                                      - medium
-                                    type: string
-                                  signatureType:
-                                    enum:
-                                      - all
-                                      - request
-                                      - response
-                                    type: string
-                                  tagFilter:
-                                    enum:
-                                      - all
-                                      - eq
-                                      - untagged
-                                    type: string
-                                  tagValue:
-                                    type: string
-                                  userDefinedFilter:
-                                    enum:
-                                      - all
-                                      - false
-                                      - true
-                                    type: string
-                                type: object
-                                x-kubernetes-preserve-unknown-fields: true
-                              signatures:
-                                items:
-                                  properties:
-                                    alarm:
-                                      type: boolean
-                                    block:
-                                      type: boolean
-                                    enabled:
-                                      type: boolean
-                                    inPolicy:
-                                      enum:
-                                        - "0"
-                                        - "1"
-                                      type: string
-                                    isPriorRuleEnforced:
-                                      type: boolean
-                                    learn:
-                                      type: boolean
-                                    name:
-                                      type: string
-                                    performStaging:
-                                      type: boolean
-                                    signatureId:
-                                      format: int64
-                                      type: integer
-                                    tag:
-                                      type: string
-                                  type: object
-                                  x-kubernetes-preserve-unknown-fields: true
-                                type: array
-                              systems:
-                                items:
-                                  properties:
-                                    name:
-                                      type: string
-                                  type: object
-                                  x-kubernetes-preserve-unknown-fields: true
-                                type: array
-                              type:
-                                enum:
-                                  - filter-based
-                                  - manual
-                                type: string
-                            type: object
-                            x-kubernetes-preserve-unknown-fields: true
-                          stagingCertificationDatetime:
-                            description: Enum types
-                            enum:
-                              - ""
-                            type: string
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    signature-settings:
-                      properties:
-                        attackSignatureFalsePositiveMode:
-                          type: string
-                        minimumAccuracyForAutoAddedSignatures:
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    signatureReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    signatureSetReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    signatureSettingReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    signatures:
-                      items:
-                        properties:
-                          enabled:
-                            type: boolean
-                          name:
-                            type: string
-                          signatureId:
-                            type: integer
-                          tag:
-                            type: string
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    softwareVersion:
-                      type: string
-                    template:
-                      properties:
-                        name:
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    threat-campaigns:
-                      items:
-                        properties:
-                          isEnabled:
-                            type: boolean
-                          name:
-                            type: string
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    threatCampaignReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    urlReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    urls:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          allowRenderingInFrames:
-                            type: string
-                          allowRenderingInFramesOnlyFrom:
-                            type: string
-                          attackSignaturesCheck:
-                            type: boolean
-                          clickjackingProtection:
-                            type: boolean
-                          description:
-                            type: string
-                          disallowFileUploadOfExecutables:
-                            type: boolean
-                          html5CrossOriginRequestsEnforcement:
-                            properties:
-                              allowOriginsEnforcementMode:
-                                type: string
-                              checkAllowedMethods:
-                                type: boolean
-                              crossDomainAllowedOrigin:
-                                items:
-                                  properties:
-                                    includeSubDomains:
-                                      type: boolean
-                                    originName:
-                                      type: string
-                                    originPort:
-                                      anyOf:
-                                        - type: integer
-                                        - type: string
-                                      x-kubernetes-int-or-string: true
-                                    originProtocol:
-                                      type: string
-                                  type: object
-                                  x-kubernetes-preserve-unknown-fields: true
-                                type: array
-                              enforcementMode:
-                                type: string
-                            type: object
-                            x-kubernetes-preserve-unknown-fields: true
-                          isAllowed:
-                            type: boolean
-                          mandatoryBody:
-                            type: boolean
-                          metacharOverrides:
-                            items:
-                              properties:
-                                isAllowed:
-                                  type: boolean
-                                metachar:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          metacharsOnUrlCheck:
-                            type: boolean
-                          method:
-                            type: string
-                          methodOverrides:
-                            items:
-                              properties:
-                                allowed:
-                                  type: boolean
-                                method:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          methodsOverrideOnUrlCheck:
-                            type: boolean
-                          name:
-                            type: string
-                          operationId:
-                            type: string
-                          positionalParameters:
-                            items:
-                              properties:
-                                parameter:
-                                  properties:
-                                    $action:
-                                      type: string
-                                    allowEmptyValue:
-                                      type: boolean
-                                    allowRepeatedParameterName:
-                                      type: boolean
-                                    arraySerializationFormat:
-                                      type: string
-                                    attackSignaturesCheck:
-                                      type: boolean
-                                    checkMaxValue:
-                                      type: boolean
-                                    checkMaxValueLength:
-                                      type: boolean
-                                    checkMetachars:
-                                      type: boolean
-                                    checkMinValue:
-                                      type: boolean
-                                    checkMinValueLength:
-                                      type: boolean
-                                    checkMultipleOfValue:
-                                      type: boolean
-                                    contentProfile:
-                                      properties:
-                                        name:
-                                          type: string
-                                      type: object
-                                      x-kubernetes-preserve-unknown-fields: true
-                                    dataType:
-                                      type: string
-                                    decodeValueAsBase64:
-                                      type: string
-                                    disallowFileUploadOfExecutables:
-                                      type: boolean
-                                    enableRegularExpression:
-                                      type: boolean
-                                    exclusiveMax:
-                                      type: boolean
-                                    exclusiveMin:
-                                      type: boolean
-                                    isBase64:
-                                      type: boolean
-                                    isCookie:
-                                      type: boolean
-                                    isHeader:
-                                      type: boolean
-                                    level:
-                                      type: string
-                                    mandatory:
-                                      type: boolean
-                                    maximumLength:
-                                      type: integer
-                                    maximumValue:
-                                      type: integer
-                                    metacharsOnParameterValueCheck:
-                                      type: boolean
-                                    minimumLength:
-                                      type: integer
-                                    minimumValue:
-                                      type: integer
-                                    multipleOf:
-                                      type: integer
-                                    name:
-                                      type: string
-                                    nameMetacharOverrides:
-                                      items:
-                                        properties:
-                                          isAllowed:
-                                            type: boolean
-                                          metachar:
-                                            type: string
-                                        type: object
-                                        x-kubernetes-preserve-unknown-fields: true
-                                      type: array
-                                    objectSerializationStyle:
-                                      type: string
-                                    parameterEnumValues:
-                                      items:
-                                        type: string
-                                      type: array
-                                    parameterLocation:
-                                      type: string
-                                    regularExpression:
-                                      type: string
-                                    sensitiveParameter:
-                                      type: boolean
-                                    signatureOverrides:
-                                      items:
-                                        properties:
-                                          enabled:
-                                            type: boolean
-                                          name:
-                                            type: string
-                                          signatureId:
-                                            type: integer
-                                          tag:
-                                            type: string
-                                        type: object
-                                        x-kubernetes-preserve-unknown-fields: true
-                                      type: array
-                                    staticValues:
-                                      type: string
-                                    type:
-                                      type: string
-                                    url:
-                                      properties:
-                                        method:
-                                          type: string
-                                        name:
-                                          type: string
-                                        protocol:
-                                          type: string
-                                        type:
-                                          type: string
-                                      type: object
-                                      x-kubernetes-preserve-unknown-fields: true
-                                    valueMetacharOverrides:
-                                      items:
-                                        properties:
-                                          isAllowed:
-                                            type: boolean
-                                          metachar:
-                                            type: string
-                                        type: object
-                                        x-kubernetes-preserve-unknown-fields: true
-                                      type: array
-                                    valueType:
-                                      type: string
-                                    wildcardOrder:
-                                      type: integer
-                                  type: object
-                                  x-kubernetes-preserve-unknown-fields: true
-                                urlSegmentIndex:
-                                  type: integer
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          protocol:
-                            type: string
-                          signatureOverrides:
-                            items:
-                              properties:
-                                enabled:
-                                  type: boolean
-                                name:
-                                  type: string
-                                signatureId:
-                                  type: integer
-                                tag:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          type:
-                            type: string
-                          urlContentProfiles:
-                            items:
-                              properties:
-                                contentProfile:
-                                  properties:
-                                    name:
-                                      type: string
-                                  type: object
-                                  x-kubernetes-preserve-unknown-fields: true
-                                headerName:
-                                  type: string
-                                headerOrder:
-                                  anyOf:
-                                    - type: integer
-                                    - type: string
-                                  x-kubernetes-int-or-string: true
-                                headerValue:
-                                  type: string
-                                name:
-                                  type: string
-                                type:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          wildcardOrder:
-                            type: integer
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    whitelist-ips:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          blockRequests:
-                            type: string
-                          ipAddress:
-                            type: string
-                          ipMask:
-                            type: string
-                          neverLogRequests:
-                            type: boolean
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    whitelistIpReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    xml-profiles:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          attackSignaturesCheck:
-                            type: boolean
-                          defenseAttributes:
-                            properties:
-                              allowCDATA:
-                                type: boolean
-                              allowDTDs:
-                                type: boolean
-                              allowExternalReferences:
-                                type: boolean
-                              allowProcessingInstructions:
-                                type: boolean
-                              maximumAttributeValueLength:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              maximumAttributesPerElement:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              maximumChildrenPerElement:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              maximumDocumentDepth:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              maximumDocumentSize:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              maximumElements:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              maximumNSDeclarations:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              maximumNameLength:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              maximumNamespaceLength:
-                                anyOf:
-                                  - type: integer
-                                  - type: string
-                                x-kubernetes-int-or-string: true
-                              tolerateCloseTagShorthand:
-                                type: boolean
-                              tolerateLeadingWhiteSpace:
-                                type: boolean
-                              tolerateNumericNames:
-                                type: boolean
-                            type: object
-                            x-kubernetes-preserve-unknown-fields: true
-                          description:
-                            type: string
-                          enableWss:
-                            type: boolean
-                          followSchemaLinks:
-                            type: boolean
-                          name:
-                            type: string
-                          signatureOverrides:
-                            items:
-                              properties:
-                                enabled:
-                                  type: boolean
-                                name:
-                                  type: string
-                                signatureId:
-                                  type: integer
-                                tag:
-                                  type: string
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                            type: array
-                          useXmlResponsePage:
-                            type: boolean
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    xml-validation-files:
-                      items:
-                        properties:
-                          $action:
-                            type: string
-                          contents:
-                            type: string
-                          fileName:
-                            type: string
-                          isBase64:
-                            type: boolean
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      type: array
-                    xmlProfileReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    xmlValidationFileReference:
-                      properties:
-                        link:
-                          pattern: ^http
-                          type: string
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
               type: object
@@ -2082,6 +381,23 @@ spec:
                           description: ThreatCampaigns is the timestamp of the threat campaigns signatures
                           format: date-time
                           type: string
+                        userDefinedSignatures:
+                          description: |-
+                            UserDefinedSignatures lists the APUserSig CRs whose signatures are included in this bundle.
+                            Each entry has a name (the APUserSig CR name, which equals its signature tag) and a
+                            generation (the Kubernetes metadata.generation of that CR at compile time).
+                          items:
+                            properties:
+                              generation:
+                                format: int64
+                                type: integer
+                              name:
+                                type: string
+                            required:
+                              - generation
+                              - name
+                            type: object
+                          type: array
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                     state:
@@ -2103,6 +419,11 @@ spec:
                     allows the controller to avoid starting duplicate jobs for the same
                     revision, while still permitting a new job when the desired revision
                     changes mid-flight.
+                  type: string
+                inProgressBundleLocation:
+                  description: |-
+                    InProgressBundleLocation stores the S3 location of the bundle currently
+                    being compiled or imported. It is cleared once that work finishes.
                   type: string
                 inProgressGeneration:
                   description: |-
@@ -2156,6 +477,23 @@ spec:
                           description: ThreatCampaigns is the timestamp of the threat campaigns signatures
                           format: date-time
                           type: string
+                        userDefinedSignatures:
+                          description: |-
+                            UserDefinedSignatures lists the APUserSig CRs whose signatures are included in this bundle.
+                            Each entry has a name (the APUserSig CR name, which equals its signature tag) and a
+                            generation (the Kubernetes metadata.generation of that CR at compile time).
+                          items:
+                            properties:
+                              generation:
+                                format: int64
+                                type: integer
+                              name:
+                                type: string
+                            required:
+                              - generation
+                              - name
+                            type: object
+                          type: array
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                     state:
@@ -2186,6 +524,11 @@ spec:
                     file/bundle itself. This is usually identical to the APPolicy CR name,
                     but it is not guaranteed, especially when the policy is fetched from
                     external references.
+                  type: string
+                policyLocation:
+                  description: |-
+                    PolicyLocation stores the S3 location of the policy JSON currently used for
+                    compilation. It is empty when the APPolicy directly imports a prebuilt bundle.
                   type: string
                 previousBundleLocation:
                   description: |-
@@ -5381,7 +3724,6 @@ spec:
       served: true
       storage: false
 ---
-# Source: crds/seaweed.seaweedfs.com_seaweeds.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -6424,6 +4766,80 @@ spec:
                         pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                         x-kubernetes-int-or-string: true
                       type: object
+                    livenessProbe:
+                      properties:
+                        exec:
+                          properties:
+                            command:
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: atomic
+                          type: object
+                        failureThreshold:
+                          type: integer
+                        grpc:
+                          properties:
+                            port:
+                              type: integer
+                            service:
+                              default: ""
+                              type: string
+                          required:
+                            - port
+                          type: object
+                        httpGet:
+                          properties:
+                            host:
+                              type: string
+                            httpHeaders:
+                              items:
+                                properties:
+                                  name:
+                                    type: string
+                                  value:
+                                    type: string
+                                required:
+                                  - name
+                                  - value
+                                type: object
+                              type: array
+                              x-kubernetes-list-type: atomic
+                            path:
+                              type: string
+                            port:
+                              anyOf:
+                                - type: integer
+                                - type: string
+                              x-kubernetes-int-or-string: true
+                            scheme:
+                              type: string
+                          required:
+                            - port
+                          type: object
+                        initialDelaySeconds:
+                          type: integer
+                        periodSeconds:
+                          type: integer
+                        successThreshold:
+                          type: integer
+                        tcpSocket:
+                          properties:
+                            host:
+                              type: string
+                            port:
+                              anyOf:
+                                - type: integer
+                                - type: string
+                              x-kubernetes-int-or-string: true
+                          required:
+                            - port
+                          type: object
+                        terminationGracePeriodSeconds:
+                          type: integer
+                        timeoutSeconds:
+                          type: integer
+                      type: object
                     maxMB:
                       type: integer
                     metricsPort:
@@ -6523,6 +4939,80 @@ spec:
                       type: integer
                     priorityClassName:
                       type: string
+                    readinessProbe:
+                      properties:
+                        exec:
+                          properties:
+                            command:
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: atomic
+                          type: object
+                        failureThreshold:
+                          type: integer
+                        grpc:
+                          properties:
+                            port:
+                              type: integer
+                            service:
+                              default: ""
+                              type: string
+                          required:
+                            - port
+                          type: object
+                        httpGet:
+                          properties:
+                            host:
+                              type: string
+                            httpHeaders:
+                              items:
+                                properties:
+                                  name:
+                                    type: string
+                                  value:
+                                    type: string
+                                required:
+                                  - name
+                                  - value
+                                type: object
+                              type: array
+                              x-kubernetes-list-type: atomic
+                            path:
+                              type: string
+                            port:
+                              anyOf:
+                                - type: integer
+                                - type: string
+                              x-kubernetes-int-or-string: true
+                            scheme:
+                              type: string
+                          required:
+                            - port
+                          type: object
+                        initialDelaySeconds:
+                          type: integer
+                        periodSeconds:
+                          type: integer
+                        successThreshold:
+                          type: integer
+                        tcpSocket:
+                          properties:
+                            host:
+                              type: string
+                            port:
+                              anyOf:
+                                - type: integer
+                                - type: string
+                              x-kubernetes-int-or-string: true
+                          required:
+                            - port
+                          type: object
+                        terminationGracePeriodSeconds:
+                          type: integer
+                        timeoutSeconds:
+                          type: integer
+                      type: object
                     replicas:
                       minimum: 1
                       type: integer
@@ -7940,6 +6430,80 @@ spec:
                         pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                         x-kubernetes-int-or-string: true
                       type: object
+                    livenessProbe:
+                      properties:
+                        exec:
+                          properties:
+                            command:
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: atomic
+                          type: object
+                        failureThreshold:
+                          type: integer
+                        grpc:
+                          properties:
+                            port:
+                              type: integer
+                            service:
+                              default: ""
+                              type: string
+                          required:
+                            - port
+                          type: object
+                        httpGet:
+                          properties:
+                            host:
+                              type: string
+                            httpHeaders:
+                              items:
+                                properties:
+                                  name:
+                                    type: string
+                                  value:
+                                    type: string
+                                required:
+                                  - name
+                                  - value
+                                type: object
+                              type: array
+                              x-kubernetes-list-type: atomic
+                            path:
+                              type: string
+                            port:
+                              anyOf:
+                                - type: integer
+                                - type: string
+                              x-kubernetes-int-or-string: true
+                            scheme:
+                              type: string
+                          required:
+                            - port
+                          type: object
+                        initialDelaySeconds:
+                          type: integer
+                        periodSeconds:
+                          type: integer
+                        successThreshold:
+                          type: integer
+                        tcpSocket:
+                          properties:
+                            host:
+                              type: string
+                            port:
+                              anyOf:
+                                - type: integer
+                                - type: string
+                              x-kubernetes-int-or-string: true
+                          required:
+                            - port
+                          type: object
+                        terminationGracePeriodSeconds:
+                          type: integer
+                        timeoutSeconds:
+                          type: integer
+                      type: object
                     metricsPort:
                       type: integer
                     nodeSelector:
@@ -7950,6 +6514,80 @@ spec:
                       type: string
                     pulseSeconds:
                       type: integer
+                    readinessProbe:
+                      properties:
+                        exec:
+                          properties:
+                            command:
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: atomic
+                          type: object
+                        failureThreshold:
+                          type: integer
+                        grpc:
+                          properties:
+                            port:
+                              type: integer
+                            service:
+                              default: ""
+                              type: string
+                          required:
+                            - port
+                          type: object
+                        httpGet:
+                          properties:
+                            host:
+                              type: string
+                            httpHeaders:
+                              items:
+                                properties:
+                                  name:
+                                    type: string
+                                  value:
+                                    type: string
+                                required:
+                                  - name
+                                  - value
+                                type: object
+                              type: array
+                              x-kubernetes-list-type: atomic
+                            path:
+                              type: string
+                            port:
+                              anyOf:
+                                - type: integer
+                                - type: string
+                              x-kubernetes-int-or-string: true
+                            scheme:
+                              type: string
+                          required:
+                            - port
+                          type: object
+                        initialDelaySeconds:
+                          type: integer
+                        periodSeconds:
+                          type: integer
+                        successThreshold:
+                          type: integer
+                        tcpSocket:
+                          properties:
+                            host:
+                              type: string
+                            port:
+                              anyOf:
+                                - type: integer
+                                - type: string
+                              x-kubernetes-int-or-string: true
+                          required:
+                            - port
+                          type: object
+                        terminationGracePeriodSeconds:
+                          type: integer
+                        timeoutSeconds:
+                          type: integer
+                      type: object
                     replicas:
                       minimum: 1
                       type: integer
@@ -9362,6 +8000,80 @@ spec:
                         pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                         x-kubernetes-int-or-string: true
                       type: object
+                    livenessProbe:
+                      properties:
+                        exec:
+                          properties:
+                            command:
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: atomic
+                          type: object
+                        failureThreshold:
+                          type: integer
+                        grpc:
+                          properties:
+                            port:
+                              type: integer
+                            service:
+                              default: ""
+                              type: string
+                          required:
+                            - port
+                          type: object
+                        httpGet:
+                          properties:
+                            host:
+                              type: string
+                            httpHeaders:
+                              items:
+                                properties:
+                                  name:
+                                    type: string
+                                  value:
+                                    type: string
+                                required:
+                                  - name
+                                  - value
+                                type: object
+                              type: array
+                              x-kubernetes-list-type: atomic
+                            path:
+                              type: string
+                            port:
+                              anyOf:
+                                - type: integer
+                                - type: string
+                              x-kubernetes-int-or-string: true
+                            scheme:
+                              type: string
+                          required:
+                            - port
+                          type: object
+                        initialDelaySeconds:
+                          type: integer
+                        periodSeconds:
+                          type: integer
+                        successThreshold:
+                          type: integer
+                        tcpSocket:
+                          properties:
+                            host:
+                              type: string
+                            port:
+                              anyOf:
+                                - type: integer
+                                - type: string
+                              x-kubernetes-int-or-string: true
+                          required:
+                            - port
+                          type: object
+                        terminationGracePeriodSeconds:
+                          type: integer
+                        timeoutSeconds:
+                          type: integer
+                      type: object
                     maxVolumeCounts:
                       type: integer
                     metricsPort:
@@ -9376,6 +8088,80 @@ spec:
                       type: string
                     rack:
                       type: string
+                    readinessProbe:
+                      properties:
+                        exec:
+                          properties:
+                            command:
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: atomic
+                          type: object
+                        failureThreshold:
+                          type: integer
+                        grpc:
+                          properties:
+                            port:
+                              type: integer
+                            service:
+                              default: ""
+                              type: string
+                          required:
+                            - port
+                          type: object
+                        httpGet:
+                          properties:
+                            host:
+                              type: string
+                            httpHeaders:
+                              items:
+                                properties:
+                                  name:
+                                    type: string
+                                  value:
+                                    type: string
+                                required:
+                                  - name
+                                  - value
+                                type: object
+                              type: array
+                              x-kubernetes-list-type: atomic
+                            path:
+                              type: string
+                            port:
+                              anyOf:
+                                - type: integer
+                                - type: string
+                              x-kubernetes-int-or-string: true
+                            scheme:
+                              type: string
+                          required:
+                            - port
+                          type: object
+                        initialDelaySeconds:
+                          type: integer
+                        periodSeconds:
+                          type: integer
+                        successThreshold:
+                          type: integer
+                        tcpSocket:
+                          properties:
+                            host:
+                              type: string
+                            port:
+                              anyOf:
+                                - type: integer
+                                - type: string
+                              x-kubernetes-int-or-string: true
+                          required:
+                            - port
+                          type: object
+                        terminationGracePeriodSeconds:
+                          type: integer
+                        timeoutSeconds:
+                          type: integer
+                      type: object
                     replicas:
                       minimum: 0
                       type: integer
@@ -10760,6 +9546,80 @@ spec:
                           pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                           x-kubernetes-int-or-string: true
                         type: object
+                      livenessProbe:
+                        properties:
+                          exec:
+                            properties:
+                              command:
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: atomic
+                            type: object
+                          failureThreshold:
+                            type: integer
+                          grpc:
+                            properties:
+                              port:
+                                type: integer
+                              service:
+                                default: ""
+                                type: string
+                            required:
+                              - port
+                            type: object
+                          httpGet:
+                            properties:
+                              host:
+                                type: string
+                              httpHeaders:
+                                items:
+                                  properties:
+                                    name:
+                                      type: string
+                                    value:
+                                      type: string
+                                  required:
+                                    - name
+                                    - value
+                                  type: object
+                                type: array
+                                x-kubernetes-list-type: atomic
+                              path:
+                                type: string
+                              port:
+                                anyOf:
+                                  - type: integer
+                                  - type: string
+                                x-kubernetes-int-or-string: true
+                              scheme:
+                                type: string
+                            required:
+                              - port
+                            type: object
+                          initialDelaySeconds:
+                            type: integer
+                          periodSeconds:
+                            type: integer
+                          successThreshold:
+                            type: integer
+                          tcpSocket:
+                            properties:
+                              host:
+                                type: string
+                              port:
+                                anyOf:
+                                  - type: integer
+                                  - type: string
+                                x-kubernetes-int-or-string: true
+                            required:
+                              - port
+                            type: object
+                          terminationGracePeriodSeconds:
+                            type: integer
+                          timeoutSeconds:
+                            type: integer
+                        type: object
                       maxVolumeCounts:
                         type: integer
                       metricsPort:
@@ -10774,6 +9634,80 @@ spec:
                         type: string
                       rack:
                         type: string
+                      readinessProbe:
+                        properties:
+                          exec:
+                            properties:
+                              command:
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: atomic
+                            type: object
+                          failureThreshold:
+                            type: integer
+                          grpc:
+                            properties:
+                              port:
+                                type: integer
+                              service:
+                                default: ""
+                                type: string
+                            required:
+                              - port
+                            type: object
+                          httpGet:
+                            properties:
+                              host:
+                                type: string
+                              httpHeaders:
+                                items:
+                                  properties:
+                                    name:
+                                      type: string
+                                    value:
+                                      type: string
+                                  required:
+                                    - name
+                                    - value
+                                  type: object
+                                type: array
+                                x-kubernetes-list-type: atomic
+                              path:
+                                type: string
+                              port:
+                                anyOf:
+                                  - type: integer
+                                  - type: string
+                                x-kubernetes-int-or-string: true
+                              scheme:
+                                type: string
+                            required:
+                              - port
+                            type: object
+                          initialDelaySeconds:
+                            type: integer
+                          periodSeconds:
+                            type: integer
+                          successThreshold:
+                            type: integer
+                          tcpSocket:
+                            properties:
+                              host:
+                                type: string
+                              port:
+                                anyOf:
+                                  - type: integer
+                                  - type: string
+                                x-kubernetes-int-or-string: true
+                            required:
+                              - port
+                            type: object
+                          terminationGracePeriodSeconds:
+                            type: integer
+                          timeoutSeconds:
+                            type: integer
+                        type: object
                       replicas:
                         minimum: 0
                         type: integer
