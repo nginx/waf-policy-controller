@@ -5,10 +5,10 @@ metadata:
   name: waf-policy-controller-seaweedfs-operator
   namespace: default
   labels:
-    helm.sh/chart: seaweedfs-operator-5.13.1
+    helm.sh/chart: seaweedfs-operator-5.14.0-NAP-release-5.14.0
     app.kubernetes.io/name: seaweedfs-operator
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/version: "5.13.1"
+    app.kubernetes.io/version: "5.14.0-NAP-release-5.14.0"
     app.kubernetes.io/managed-by: Helm
 automountServiceAccountToken: true
 ---
@@ -19,10 +19,10 @@ metadata:
   name: waf-policy-controller-f5-waf-policy-controller-sa
   namespace: default
   labels:
-    helm.sh/chart: f5-waf-policy-controller-5.13.1
+    helm.sh/chart: f5-waf-policy-controller-5.14.0
     app.kubernetes.io/name: f5-waf-policy-controller
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/version: "5.13.1"
+    app.kubernetes.io/version: "5.14.0"
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: policy-controller
 ---
@@ -80,10 +80,10 @@ kind: ClusterRole
 metadata:
   name: waf-policy-controller-f5-waf-policy-controller-role
   labels:
-    helm.sh/chart: f5-waf-policy-controller-5.13.1
+    helm.sh/chart: f5-waf-policy-controller-5.14.0
     app.kubernetes.io/name: f5-waf-policy-controller
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/version: "5.13.1"
+    app.kubernetes.io/version: "5.14.0"
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: policy-controller
 rules:
@@ -106,10 +106,10 @@ kind: ClusterRoleBinding
 metadata:
   name: waf-policy-controller-f5-waf-policy-controller-clusterrolebinding
   labels:
-    helm.sh/chart: f5-waf-policy-controller-5.13.1
+    helm.sh/chart: f5-waf-policy-controller-5.14.0
     app.kubernetes.io/name: f5-waf-policy-controller
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/version: "5.13.1"
+    app.kubernetes.io/version: "5.14.0"
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: policy-controller
 subjects:
@@ -308,26 +308,30 @@ spec:
     app.kubernetes.io/name: seaweedfs-operator
     app.kubernetes.io/instance: waf-policy-controller
 ---
-# Source: f5-waf-policy-controller/templates/redis-deployment.yaml
+# Source: f5-waf-policy-controller/templates/compiler-service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: waf-policy-controller-f5-waf-redis-service
+  name: waf-policy-controller-f5-waf-compiler-service
   namespace: default
   labels:
-    app: waf-policy-controller-f5-waf-redis
-    component: redis
-    app.kubernetes.io/name: redis
+    helm.sh/chart: f5-waf-policy-controller-5.14.0
+    app.kubernetes.io/name: f5-waf-policy-controller
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/component: policyController
+    app.kubernetes.io/version: "5.14.0"
+    app.kubernetes.io/managed-by: Helm
+    app: waf-policy-controller-f5-waf-compiler-service
+    component: compiler-service
+    app.kubernetes.io/component: compiler
 spec:
-  type: ClusterIP
+  clusterIP: None
   ports:
-    - name: redis
-      port: 6379
-      targetPort: 6379
+    - name: grpc
+      port: 50051
+      targetPort: grpc
       protocol: TCP
   selector:
-    app: waf-policy-controller-f5-waf-redis
-    component: redis
+    app: waf-policy-controller-f5-waf-compiler-service
+    component: compiler-service
+    app.kubernetes.io/name: f5-waf-policy-controller
     app.kubernetes.io/instance: waf-policy-controller

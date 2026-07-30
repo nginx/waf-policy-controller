@@ -124,6 +124,15 @@ spec:
                 required:
                 - state
                 type: object
+              inProgressBundleLocation:
+                description: |-
+                  InProgressBundleLocation stores the S3 location of the bundle currently
+                  being compiled. It is set atomically with the two-phase claim (before
+                  the compiler gRPC call) and cleared on success (once Bundle.Location
+                  takes its place) or failure. Housekeeping treats it as a protected
+                  reference so the shared bundles/ cleanup pass cannot delete an in-flight
+                  bundle whose LastModified is older than the current round's roundStart.
+                type: string
               inProgressGeneration:
                 description: |-
                   InProgressGeneration records the metadata.generation for which a

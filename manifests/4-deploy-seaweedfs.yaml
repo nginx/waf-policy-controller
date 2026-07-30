@@ -5,14 +5,14 @@ metadata:
   name: waf-policy-controller-f5-waf-seaweed
   namespace: default
   labels:
-    helm.sh/chart: f5-waf-policy-controller-5.13.1
+    helm.sh/chart: f5-waf-policy-controller-5.14.0
     app.kubernetes.io/name: f5-waf-policy-controller
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/version: "5.13.1"
+    app.kubernetes.io/version: "5.14.0"
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: seaweedfs
 spec:
-  image: "private-registry.nginx.com/nap/waf-seaweedfs:5.13.1"
+  image: "private-registry.nginx.com/nap/waf-seaweedfs:5.14.0"
   volumeServerDiskCount: 1
   master:
     env:

@@ -96,6 +96,7 @@ _Appears in:_
 | `observedGeneration` _integer_ | ObservedGeneration is the most recent metadata.generation for which the<br />controller successfully processed this APLogConf resource.<br />This field tracks the Kubernetes metadata.generation to determine if<br />the resource needs reprocessing when the spec changes. |  | Optional: \{\} <br /> |
 | `inProgressGeneration` _integer_ | InProgressGeneration records the metadata.generation for which a<br />compilation job is currently pending or processing |  |  |
 | `previousBundleLocation` _string_ | PreviousBundleLocation stores the S3 location of the previous (N-1) bundle.<br />When a new bundle is compiled, the old bundle is NOT deleted immediately<br />because traffic nodes may still be fetching it. Instead, the old location<br />is saved here. On the NEXT successful compilation, the bundle at this<br />location (now N-2) is deleted, and the current bundle location takes its place. |  | Optional: \{\} <br /> |
+| `inProgressBundleLocation` _string_ | InProgressBundleLocation stores the S3 location of the bundle currently<br />being compiled. It is set atomically with the two-phase claim (before<br />the compiler gRPC call) and cleared on success (once Bundle.Location<br />takes its place) or failure. Housekeeping treats it as a protected<br />reference so the shared bundles/ cleanup pass cannot delete an in-flight<br />bundle whose LastModified is older than the current round's roundStart. |  | Optional: \{\} <br /> |
 
 
 #### APPolicy
@@ -141,7 +142,7 @@ _Appears in:_
 
 #### APPolicyAttackType
 
-_Underlying type:_ _[struct{Name *string "json:\"name,omitempty\""}](#struct{name-*string-"json:\"name,omitempty\""})_
+
 
 
 
@@ -151,64 +152,15 @@ _Validation:_
 _Appears in:_
 - [APPolicySignatureSetFilter](#appolicysignaturesetfilter)
 
-
-
-#### APPolicyBlockingSettings
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
-| `violations` _[APPolicyViolations](#appolicyviolations) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `evasions` _[APPolicyEvasions](#appolicyevasions) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `http-protocols` _[APPolicyHttpprotocols](#appolicyhttpprotocols) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-
-
-#### APPolicyBotDefense
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `mitigations` _[APPolicyMitigations](#appolicymitigations)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `settings` _[APPolicySettings](#appolicysettings)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-
-
-#### APPolicyBrowserDefinitions
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `$action` _string_ |  |  |  |
 | `name` _string_ |  |  |  |
-| `isUserDefined` _boolean_ |  |  |  |
-| `matchRegex` _string_ |  |  |  |
-| `matchString` _string_ |  |  |  |
+
+
+
+
+
+
 
 
 #### APPolicyBrowsers
@@ -276,22 +228,6 @@ _Appears in:_
 | `metachar` _string_ |  |  |  |
 
 
-#### APPolicyCharacterSets
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `characterSet` _[APPolicyCharacterSet](#appolicycharacterset) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `characterSetType` _string_ |  |  |  |
 
 
 #### APPolicyClasses
@@ -330,49 +266,8 @@ _Appears in:_
 | `name` _string_ |  |  |  |
 
 
-#### APPolicyCookieSettings
 
 
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `maximumCookieHeaderLength` _[IntOrString](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#intorstring-intstr-util)_ |  |  |  |
-
-
-#### APPolicyCookies
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `$action` _string_ |  |  |  |
-| `accessibleOnlyThroughTheHttpProtocol` _boolean_ |  |  |  |
-| `securedOverHttpsConnection` _boolean_ |  |  |  |
-| `name` _string_ |  |  |  |
-| `enforcementType` _string_ |  |  |  |
-| `attackSignaturesCheck` _boolean_ |  |  |  |
-| `insertSameSiteAttribute` _string_ |  |  |  |
-| `maskValueInLogs` _boolean_ |  |  |  |
-| `signatureOverrides` _[APPolicySignatureOverrides](#appolicysignatureoverrides) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `type` _string_ |  |  |  |
-| `decodeValueAsBase64` _string_ |  |  |  |
-| `wildcardOrder` _integer_ |  |  |  |
 
 
 #### APPolicyCrossDomainAllowedOrigin
@@ -395,106 +290,14 @@ _Appears in:_
 | `originProtocol` _string_ |  |  |  |
 
 
-#### APPolicyCsrfProtection
 
 
 
 
 
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `enabled` _boolean_ |  |  |  |
-| `expirationTimeInSeconds` _string_ |  |  | Pattern: `disabled\|\d+` <br /> |
-| `sslOnly` _boolean_ |  |  |  |
-
-
-#### APPolicyCsrfUrls
 
 
 
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `$action` _string_ |  |  |  |
-| `enforcementAction` _string_ |  |  |  |
-| `method` _string_ |  |  |  |
-| `url` _string_ |  |  |  |
-| `wildcardOrder` _integer_ |  |  |  |
-
-
-#### APPolicyDataGuard
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `enabled` _boolean_ |  |  |  |
-| `maskData` _boolean_ |  |  |  |
-| `usSocialSecurityNumbers` _boolean_ |  |  |  |
-| `creditCardNumbers` _boolean_ |  |  |  |
-| `customPatterns` _boolean_ |  |  |  |
-| `enforcementMode` _string_ |  |  |  |
-| `enforcementUrls` _string array_ |  |  |  |
-| `lastCcnDigitsToExpose` _integer_ |  |  |  |
-| `lastSsnDigitsToExpose` _integer_ |  |  |  |
-| `firstCustomCharactersToExpose` _integer_ |  |  |  |
-| `lastCustomCharactersToExpose` _integer_ |  |  |  |
-| `customPatternsList` _string array_ |  |  |  |
-
-
-#### APPolicyDisallowedGeolocationReference
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `link` _string_ |  |  | Pattern: `^http` <br /> |
-
-
-#### APPolicyEnforcerSettings
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `enforcerStateCookies` _[APPolicyEnforcerStateCookies](#appolicyenforcerstatecookies)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
 
 
 #### APPolicyEnforcerStateCookies
@@ -586,52 +389,8 @@ _Appears in:_
 | `token` _string_ | Token for authentication (contains the name of the Kubernetes secret) |  | Optional: \{\} <br /> |
 
 
-#### APPolicyExternalReferenceDetails
 
 
-
-APPolicyExternalReferenceDetails contains configuration for Git repository references
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `repositoryDetails` _[APPolicyRepositoryDetails](#appolicyrepositorydetails)_ | Repository details for Git repositories<br />Required when $ref points to a Git repository, optional for HTTPS URLs |  | XPreserveUnknownFields: \{\} <br />Optional: \{\} <br /> |
-| `authentication` _[APPolicyExternalAuthentication](#appolicyexternalauthentication)_ | Authentication configuration for accessing Git repositories |  | XPreserveUnknownFields: \{\} <br />Optional: \{\} <br /> |
-
-
-#### APPolicyFiletypes
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `name` _string_ |  |  |  |
-| `type` _string_ |  |  |  |
-| `$action` _string_ |  |  |  |
-| `allowed` _boolean_ |  |  |  |
-| `checkPostDataLength` _boolean_ |  |  |  |
-| `postDataLength` _integer_ |  |  |  |
-| `checkRequestLength` _boolean_ |  |  |  |
-| `requestLength` _integer_ |  |  |  |
-| `checkUrlLength` _boolean_ |  |  |  |
-| `urlLength` _integer_ |  |  |  |
-| `checkQueryStringLength` _boolean_ |  |  |  |
-| `queryStringLength` _integer_ |  |  |  |
-| `responseCheck` _boolean_ |  |  |  |
-| `wildcardOrder` _integer_ |  |  |  |
 
 
 #### APPolicyFilterAccuracyFilter
@@ -799,24 +558,6 @@ _Appears in:_
 | `true` |  |
 
 
-#### APPolicyGeneral
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `allowedResponseCodes` _[APPolicyResponseCode](#appolicyresponsecode) array_ |  |  | Maximum: 999 <br />Minimum: 100 <br /> |
-| `customXffHeaders` _string array_ |  |  |  |
-| `trustXff` _boolean_ |  |  |  |
-| `maskCreditCardNumbersInRequest` _boolean_ |  |  |  |
 
 
 #### APPolicyGraphqlDefenseAttributes
@@ -842,30 +583,6 @@ _Appears in:_
 | `tolerateParsingWarnings` _boolean_ |  |  |  |
 
 
-#### APPolicyGraphqlProfiles
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `name` _string_ |  |  |  |
-| `$action` _string_ |  |  |  |
-| `attackSignaturesCheck` _boolean_ |  |  |  |
-| `defenseAttributes` _[APPolicyGraphqlDefenseAttributes](#appolicygraphqldefenseattributes)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `description` _string_ |  |  |  |
-| `metacharElementCheck` _boolean_ |  |  |  |
-| `metacharOverrides` _[APPolicyCharacterSet](#appolicycharacterset) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `responseEnforcement` _[APPolicyResponseEnforcement](#appolicyresponseenforcement)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `signatureOverrides` _[APPolicySignatureOverrides](#appolicysignatureoverrides) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `sensitiveData` _[APPolicySensitiveData](#appolicysensitivedata) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
 
 
 #### APPolicyGrpcDefenseAttributes
@@ -886,99 +603,12 @@ _Appears in:_
 | `maximumDataLength` _[IntOrString](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#intorstring-intstr-util)_ |  |  |  |
 
 
-#### APPolicyGrpcProfiles
 
 
 
 
 
-_Validation:_
-- XPreserveUnknownFields: {}
 
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `$action` _string_ |  |  |  |
-| `associateUrls` _boolean_ |  |  |  |
-| `attackSignaturesCheck` _boolean_ |  |  |  |
-| `decodeStringValuesAsBase64` _string_ |  |  |  |
-| `defenseAttributes` _[APPolicyGrpcDefenseAttributes](#appolicygrpcdefenseattributes)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `description` _string_ |  |  |  |
-| `hasIdlFiles` _boolean_ |  |  |  |
-| `idlFiles` _[APPolicyIdlFilesProfiles](#appolicyidlfilesprofiles) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `metacharCheck` _boolean_ |  |  |  |
-| `metacharElementCheck` _boolean_ |  |  |  |
-| `name` _string_ |  |  |  |
-| `signatureOverrides` _[APPolicySignatureOverrides](#appolicysignatureoverrides) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-
-
-#### APPolicyHeaderSettings
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `maximumHttpHeaderLength` _[IntOrString](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#intorstring-intstr-util)_ |  |  |  |
-
-
-#### APPolicyHeaders
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `$action` _string_ |  |  |  |
-| `allowRepeatedOccurrences` _boolean_ |  |  |  |
-| `signatureOverrides` _[APPolicySignatureOverrides](#appolicysignatureoverrides) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `base64Decoding` _boolean_ |  |  |  |
-| `maskValueInLogs` _boolean_ |  |  |  |
-| `htmlNormalization` _boolean_ |  |  |  |
-| `urlNormalization` _boolean_ |  |  |  |
-| `name` _string_ |  |  |  |
-| `normalizationViolations` _boolean_ |  |  |  |
-| `type` _string_ |  |  |  |
-| `mandatory` _boolean_ |  |  |  |
-| `percentDecoding` _boolean_ |  |  |  |
-| `checkSignatures` _boolean_ |  |  |  |
-| `decodeValueAsBase64` _string_ |  |  |  |
-| `wildcardOrder` _integer_ |  |  |  |
-
-
-#### APPolicyHostNames
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `$action` _string_ |  |  |  |
-| `name` _string_ |  |  |  |
-| `includeSubdomains` _boolean_ |  |  |  |
 
 
 #### APPolicyHtml5CrossOriginRequestsEnforcement
@@ -1033,7 +663,6 @@ _Validation:_
 
 _Appears in:_
 - [APPolicyIdlFilesProfiles](#appolicyidlfilesprofiles)
-- [APPolicyPolicy](#appolicypolicy)
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
@@ -1083,30 +712,6 @@ _Appears in:_
 | `tolerateJSONParsingWarnings` _boolean_ |  |  |  |
 
 
-#### APPolicyJsonProfiles
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `$action` _string_ |  |  |  |
-| `defenseAttributes` _[APPolicyJsonDefenseAttributes](#appolicyjsondefenseattributes)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `name` _string_ |  |  |  |
-| `hasValidationFiles` _boolean_ |  |  |  |
-| `handleJsonValuesAsParameters` _boolean_ |  |  |  |
-| `description` _string_ |  |  |  |
-| `metacharOverrides` _[APPolicyCharacterSet](#appolicycharacterset) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `signatureOverrides` _[APPolicySignatureOverrides](#appolicysignatureoverrides) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `validationFiles` _[APPolicyValidationFile](#appolicyvalidationfile) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `attackSignaturesCheck` _boolean_ |  |  |  |
 
 
 #### APPolicyList
@@ -1146,22 +751,6 @@ _Appears in:_
 | `method` _string_ |  |  |  |
 
 
-#### APPolicyMethods
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `$action` _string_ |  |  |  |
-| `name` _string_ |  |  |  |
 
 
 #### APPolicyMitigationSignatures
@@ -1233,7 +822,6 @@ _Validation:_
 - XPreserveUnknownFields: {}
 
 _Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
 - [APPolicyPositionalParameters](#appolicypositionalparameters)
 
 | Field | Description | Default | Validation |
@@ -1297,78 +885,7 @@ _Appears in:_
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
-| `$ref` _string_ | Reference to external JSON policy file |  | Optional: \{\} <br /> |
-| `externalReferenceDetails` _[APPolicyExternalReferenceDetails](#appolicyexternalreferencedetails)_ | External reference details for policies fetched from Git repositories<br />Required when $ref points to a Git repository |  | XPreserveUnknownFields: \{\} <br />Optional: \{\} <br /> |
 | `name` _string_ |  |  |  |
-| `template` _[APPolicyTemplate](#appolicytemplate)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `applicationLanguage` _string_ |  |  |  |
-| `enforcementMode` _string_ |  |  |  |
-| `blocking-settings` _[APPolicyBlockingSettings](#appolicyblockingsettings)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `signature-settings` _[APPolicySignatureSettings](#appolicysignaturesettings)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `server-technologies` _[APPolicyServerTechnologies](#appolicyservertechnologies) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `headers` _[APPolicyHeaders](#appolicyheaders) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `host-names` _[APPolicyHostNames](#appolicyhostnames) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `cookies` _[APPolicyCookies](#appolicycookies) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `data-guard` _[APPolicyDataGuard](#appolicydataguard)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `filetypes` _[APPolicyFiletypes](#appolicyfiletypes) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `graphql-profiles` _[APPolicyGraphqlProfiles](#appolicygraphqlprofiles) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `enforcer-settings` _[APPolicyEnforcerSettings](#appolicyenforcersettings)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `methods` _[APPolicyMethods](#appolicymethods) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `general` _[APPolicyGeneral](#appolicygeneral)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `parameters` _[APPolicyParameters](#appolicyparameters) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `sensitive-parameters` _[APPolicySensitiveParameters](#appolicysensitiveparameters) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `json-profiles` _[APPolicyJsonProfiles](#appolicyjsonprofiles) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `xml-profiles` _[APPolicyXmlProfiles](#appolicyxmlprofiles) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `whitelist-ips` _[APPolicyWhitelistIps](#appolicywhitelistips) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `response-pages` _[APPolicyResponsePages](#appolicyresponsepages) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `browser-definitions` _[APPolicyBrowserDefinitions](#appolicybrowserdefinitions) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `caseInsensitive` _boolean_ |  |  |  |
-| `character-sets` _[APPolicyCharacterSets](#appolicycharactersets) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `cookie-settings` _[APPolicyCookieSettings](#appolicycookiesettings)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `disallowed-geolocations` _[DisallowedGeolocations](#disallowedgeolocations) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `disallowedGeolocationReference` _[APPolicyDisallowedGeolocationReference](#appolicydisallowedgeolocationreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `enablePassiveMode` _boolean_ |  |  |  |
-| `fullPath` _string_ |  |  |  |
-| `header-settings` _[APPolicyHeaderSettings](#appolicyheadersettings)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `json-validation-files` _[APPolicyValidationFiles](#appolicyvalidationfiles) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `xml-validation-files` _[APPolicyValidationFiles](#appolicyvalidationfiles) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `signature-sets` _[APPolicySignatureSets](#appolicysignaturesets) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `signatures` _[APPolicySignatureOverrides](#appolicysignatureoverrides) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `softwareVersion` _string_ |  |  |  |
-| `urls` _[APPolicyUrls](#appolicyurls) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `description` _string_ |  |  |  |
-| `open-api-files` _[APPolicyReference](#appolicyreference) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `signature-requirements` _[APPolicySignatureRequirements](#appolicysignaturerequirements) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `threat-campaigns` _[APPolicyThreatCampaigns](#appolicythreatcampaigns) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `bot-defense` _[APPolicyBotDefense](#appolicybotdefense)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `idl-files` _[APPolicyIdlFiles](#appolicyidlfiles) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `grpc-profiles` _[APPolicyGrpcProfiles](#appolicygrpcprofiles) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `csrf-urls` _[APPolicyCsrfUrls](#appolicycsrfurls) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `csrf-protection` _[APPolicyCsrfProtection](#appolicycsrfprotection)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `blockingSettingReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `signatureSettingReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `serverTechnologyReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `headerReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `cookieReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `dataGuardReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `filetypeReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `methodReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `generalReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `parameterReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `sensitiveParameterReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `jsonProfileReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `xmlProfileReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `whitelistIpReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `responsePageReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `characterSetReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `cookieSettingsReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `headerSettingsReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `jsonValidationFileReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `xmlValidationFileReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `signatureSetReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `signatureReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `urlReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `threatCampaignReference` _[APPolicyReference](#appolicyreference)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
 
 
 #### APPolicyPositionalParameters
@@ -1399,7 +916,6 @@ _Validation:_
 - XPreserveUnknownFields: {}
 
 _Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
 - [APPolicySpec](#appolicyspec)
 
 | Field | Description | Default | Validation |
@@ -1458,32 +974,6 @@ _Appears in:_
 | `disallowedPatterns` _string array_ |  |  |  |
 
 
-#### APPolicyResponsePages
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `responseContent` _string_ |  |  |  |
-| `responseHeader` _string_ |  |  |  |
-| `responseActionType` _string_ |  |  |  |
-| `responsePageType` _string_ |  |  |  |
-| `ajaxActionType` _string_ |  |  |  |
-| `ajaxCustomContent` _string_ |  |  |  |
-| `ajaxEnabled` _boolean_ |  |  |  |
-| `ajaxPopupMessage` _string_ |  |  |  |
-| `ajaxRedirectUrl` _string_ |  |  |  |
-| `responseRedirectUrl` _string_ |  |  |  |
-| `grpcStatusCode` _string_ |  |  |  |
-| `grpcStatusMessage` _string_ |  |  |  |
 
 
 #### APPolicySensitiveData
@@ -1503,40 +993,8 @@ _Appears in:_
 | `parameterName` _string_ |  |  |  |
 
 
-#### APPolicySensitiveParameters
 
 
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `$action` _string_ |  |  |  |
-| `name` _string_ |  |  |  |
-
-
-#### APPolicyServerTechnologies
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `$action` _string_ |  |  |  |
-| `serverTechnologyName` _string_ |  |  |  |
 
 
 #### APPolicySettings
@@ -1573,7 +1031,6 @@ _Appears in:_
 - [APPolicyHeaders](#appolicyheaders)
 - [APPolicyJsonProfiles](#appolicyjsonprofiles)
 - [APPolicyParameters](#appolicyparameters)
-- [APPolicyPolicy](#appolicypolicy)
 - [APPolicyUrls](#appolicyurls)
 - [APPolicyXmlProfiles](#appolicyxmlprofiles)
 
@@ -1585,22 +1042,6 @@ _Appears in:_
 | `name` _string_ |  |  |  |
 
 
-#### APPolicySignatureRequirements
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `$action` _string_ |  |  |  |
-| `tag` _string_ |  |  |  |
 
 
 #### APPolicySignatureSet
@@ -1668,27 +1109,6 @@ _Appears in:_
 | `manual` |  |
 
 
-#### APPolicySignatureSets
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `$action` _string_ |  |  |  |
-| `name` _string_ |  |  |  |
-| `block` _boolean_ |  |  |  |
-| `alarm` _boolean_ |  |  |  |
-| `learn` _boolean_ |  |  |  |
-| `signatureSet` _[APPolicySignatureSet](#appolicysignatureset)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `stagingCertificationDatetime` _[APPolicySignatureSetsStagingCertificationDatetime](#appolicysignaturesetsstagingcertificationdatetime)_ |  |  | Enum: [] <br /> |
 
 
 #### APPolicySignatureSetsStagingCertificationDatetime
@@ -1707,22 +1127,6 @@ _Appears in:_
 | `` |  |
 
 
-#### APPolicySignatureSettings
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `attackSignatureFalsePositiveMode` _string_ |  |  |  |
-| `minimumAccuracyForAutoAddedSignatures` _string_ |  |  |  |
 
 
 #### APPolicySignatures
@@ -1803,12 +1207,14 @@ _Appears in:_
 | `bundle` _[APPolicyBundleStatus](#appolicybundlestatus)_ | Bundle holds the “ready/pending/invalid” bundle info |  | XPreserveUnknownFields: \{\} <br />Optional: \{\} <br /> |
 | `processing` _[ProcessingStatus](#processingstatus)_ | Processing holds the compiler/validation metadata |  | Optional: \{\} <br /> |
 | `observedPolicyName` _string_ | ObservedPolicyName is the policy name as declared inside the policy<br />file/bundle itself. This is usually identical to the APPolicy CR name,<br />but it is not guaranteed, especially when the policy is fetched from<br />external references. |  | Optional: \{\} <br /> |
+| `policyLocation` _string_ | PolicyLocation stores the S3 location of the policy JSON currently used for<br />compilation. It is empty when the APPolicy directly imports a prebuilt bundle. |  | Optional: \{\} <br /> |
 | `observedGeneration` _integer_ | ObservedGeneration is the most recent metadata.generation for which the<br />controller successfully reconciled (compiled) the policy bundle.<br />This field tracks the Kubernetes metadata.generation to determine if<br />a new compilation is needed when the spec changes.<br />If metadata.generation is greater than this value, the controller will<br />trigger a new compilation. |  | Optional: \{\} <br /> |
 | `inProgressGeneration` _integer_ | InProgressGeneration records the metadata.generation for which a<br />compilation job is currently pending or processing.<br />This allows the controller to avoid mis-attributing compilation results<br />when the spec changes mid-flight. |  | Optional: \{\} <br /> |
 | `lastAppliedRevision` _string_ | LastAppliedRevision records the revision from metadata.annotations<br />that was used for the last successful compilation. If the current<br />metadata revision differs from this value, the controller will<br />trigger a recompilation. |  | Optional: \{\} <br /> |
 | `currentRevisionInProgress` _string_ | CurrentRevisionInProgress records the revision from metadata.annotations<br />for which a compilation job is currently pending or processing. This<br />allows the controller to avoid starting duplicate jobs for the same<br />revision, while still permitting a new job when the desired revision<br />changes mid-flight. |  | Optional: \{\} <br /> |
 | `lastGoodBundle` _[APPolicyBundleStatus](#appolicybundlestatus)_ | LastGoodBundle stores the most recent successfully compiled bundle metadata.<br />This field is only populated when the current bundle state is NOT "ready",<br />to enable fallback to the last known good configuration. |  | XPreserveUnknownFields: \{\} <br />Optional: \{\} <br /> |
 | `previousBundleLocation` _string_ | PreviousBundleLocation stores the S3 location of the previous (N-1) bundle.<br />When a new bundle is compiled, the old bundle is NOT deleted immediately<br />because traffic nodes may still be fetching it. Instead, the old location<br />is saved here. On the NEXT successful compilation, the bundle at this<br />location (now N-2) is deleted, and the current bundle location takes its place. |  | Optional: \{\} <br /> |
+| `inProgressBundleLocation` _string_ | InProgressBundleLocation stores the S3 location of the bundle currently<br />being compiled or imported. It is cleared once that work finishes. |  | Optional: \{\} <br /> |
 
 
 #### APPolicySystems
@@ -1828,39 +1234,8 @@ _Appears in:_
 | `name` _string_ |  |  |  |
 
 
-#### APPolicyTemplate
 
 
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `name` _string_ |  |  |  |
-
-
-#### APPolicyThreatCampaigns
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `isEnabled` _boolean_ |  |  |  |
-| `name` _string_ |  |  |  |
 
 
 #### APPolicyUrl
@@ -1905,43 +1280,6 @@ _Appears in:_
 | `type` _string_ |  |  |  |
 
 
-#### APPolicyUrls
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `$action` _string_ |  |  |  |
-| `method` _string_ |  |  |  |
-| `name` _string_ |  |  |  |
-| `protocol` _string_ |  |  |  |
-| `description` _string_ |  |  |  |
-| `metacharOverrides` _[APPolicyCharacterSet](#appolicycharacterset) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `metacharsOnUrlCheck` _boolean_ |  |  |  |
-| `attackSignaturesCheck` _boolean_ |  |  |  |
-| `disallowFileUploadOfExecutables` _boolean_ |  |  |  |
-| `html5CrossOriginRequestsEnforcement` _[APPolicyHtml5CrossOriginRequestsEnforcement](#appolicyhtml5crossoriginrequestsenforcement)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `isAllowed` _boolean_ |  |  |  |
-| `mandatoryBody` _boolean_ |  |  |  |
-| `methodOverrides` _[APPolicyMethodOverrides](#appolicymethodoverrides) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `methodsOverrideOnUrlCheck` _boolean_ |  |  |  |
-| `operationId` _string_ |  |  |  |
-| `positionalParameters` _[APPolicyPositionalParameters](#appolicypositionalparameters) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `signatureOverrides` _[APPolicySignatureOverrides](#appolicysignatureoverrides) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `type` _string_ |  |  |  |
-| `urlContentProfiles` _[APPolicyUrlContentProfiles](#appolicyurlcontentprofiles) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `wildcardOrder` _integer_ |  |  |  |
-| `allowRenderingInFrames` _string_ |  |  |  |
-| `allowRenderingInFramesOnlyFrom` _string_ |  |  |  |
-| `clickjackingProtection` _boolean_ |  |  |  |
 
 
 #### APPolicyValidationFile
@@ -1973,7 +1311,6 @@ _Validation:_
 - XPreserveUnknownFields: {}
 
 _Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
 - [APPolicyValidationFile](#appolicyvalidationfile)
 
 | Field | Description | Default | Validation |
@@ -2004,25 +1341,6 @@ _Appears in:_
 | `block` _boolean_ |  |  |  |
 
 
-#### APPolicyWhitelistIps
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `$action` _string_ |  |  |  |
-| `blockRequests` _string_ |  |  |  |
-| `ipAddress` _string_ |  |  |  |
-| `ipMask` _string_ |  |  |  |
-| `neverLogRequests` _boolean_ |  |  |  |
 
 
 #### APPolicyXmlDefenseAttributes
@@ -2057,29 +1375,6 @@ _Appears in:_
 | `allowProcessingInstructions` _boolean_ |  |  |  |
 
 
-#### APPolicyXmlProfiles
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `$action` _string_ |  |  |  |
-| `name` _string_ |  |  |  |
-| `description` _string_ |  |  |  |
-| `defenseAttributes` _[APPolicyXmlDefenseAttributes](#appolicyxmldefenseattributes)_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `attackSignaturesCheck` _boolean_ |  |  |  |
-| `enableWss` _boolean_ |  |  |  |
-| `followSchemaLinks` _boolean_ |  |  |  |
-| `signatureOverrides` _[APPolicySignatureOverrides](#appolicysignatureoverrides) array_ |  |  | XPreserveUnknownFields: \{\} <br /> |
-| `useXmlResponsePage` _boolean_ |  |  |  |
 
 
 #### APSignatures
@@ -2283,6 +1578,7 @@ _Appears in:_
 | `attackSignatures` _[Time](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#time-v1-meta)_ | AttackSignatures is the timestamp of the attack signatures |  | Optional: \{\} <br /> |
 | `botSignatures` _[Time](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#time-v1-meta)_ | BotSignatures is the timestamp of the bot signatures |  | Optional: \{\} <br /> |
 | `threatCampaigns` _[Time](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#time-v1-meta)_ | ThreatCampaigns is the timestamp of the threat campaigns signatures |  | Optional: \{\} <br /> |
+| `userDefinedSignatures` _[UserDefinedSignatureRef](#userdefinedsignatureref) array_ | UserDefinedSignatures lists the APUserSig CRs whose signatures are included in this bundle.<br />Each entry has a name (the APUserSig CR name, which equals its signature tag) and a<br />generation (the Kubernetes metadata.generation of that CR at compile time). |  | Optional: \{\} <br /> |
 
 
 #### BundleState
@@ -2325,23 +1621,6 @@ _Appears in:_
 | `compilerVersion` _string_ | CompilerVersion is the version of the compiler used to build this bundle. |  | Optional: \{\} <br /> |
 
 
-#### DisallowedGeolocations
-
-
-
-
-
-_Validation:_
-- XPreserveUnknownFields: {}
-
-_Appears in:_
-- [APPolicyPolicy](#appolicypolicy)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `$action` _string_ |  |  |  |
-| `countryCode` _string_ |  |  |  |
-| `countryName` _string_ |  |  |  |
 
 
 #### EscapingCharacter
@@ -2627,6 +1906,23 @@ _Appears in:_
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
 | `name` _string_ |  |  |  |
+
+
+#### UserDefinedSignatureRef
+
+
+
+
+
+
+
+_Appears in:_
+- [BundleSignatures](#bundlesignatures)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `name` _string_ |  |  |  |
+| `generation` _integer_ |  |  |  |
 
 
 #### UserSignature
