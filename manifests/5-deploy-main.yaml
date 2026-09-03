@@ -5,10 +5,10 @@ metadata:
   name: waf-policy-controller-f5-waf-compiler
   namespace: default
   labels:
-    helm.sh/chart: f5-waf-policy-controller-5.14.0
+    helm.sh/chart: f5-waf-policy-controller-5.15.0
     app.kubernetes.io/name: f5-waf-policy-controller
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/version: "5.14.0"
+    app.kubernetes.io/version: "5.15.0"
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: compiler
 spec:
@@ -39,10 +39,10 @@ metadata:
   name: waf-policy-controller-f5-waf-policy-controller
   namespace: default
   labels:
-    helm.sh/chart: f5-waf-policy-controller-5.14.0
+    helm.sh/chart: f5-waf-policy-controller-5.15.0
     app.kubernetes.io/name: f5-waf-policy-controller
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/version: "5.14.0"
+    app.kubernetes.io/version: "5.15.0"
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: policy-controller
 spec:
@@ -64,16 +64,16 @@ metadata:
   name: waf-policy-controller-f5-waf-compiler-service
   namespace: default
   labels:
-    helm.sh/chart: f5-waf-policy-controller-5.14.0
+    helm.sh/chart: f5-waf-policy-controller-5.15.0
     app.kubernetes.io/name: f5-waf-policy-controller
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/version: "5.14.0"
+    app.kubernetes.io/version: "5.15.0"
     app.kubernetes.io/managed-by: Helm
     app: waf-policy-controller-f5-waf-compiler-service
     component: compiler-service
     app.kubernetes.io/component: compiler
   annotations:
-    appprotect.f5.com/compiler-version: 5.14.0
+    appprotect.f5.com/compiler-version: 5.15.0
 spec:
   replicas: 1
   selector:
@@ -101,14 +101,14 @@ spec:
           emptyDir: {}
       initContainers:
         - name: init-app-protect
-          image: "private-registry.nginx.com/nap/waf-compiler:5.14.0"
+          image: "private-registry.nginx.com/nap/waf-compiler:5.15.0"
           command: ["sh", "-c", "cp -a /opt/app_protect/* /init_copy/"]
           volumeMounts:
             - name: opt-app-protect
               mountPath: /init_copy
       containers:
         - name: waf-policy-controller-f5-waf-compiler-service
-          image: "private-registry.nginx.com/nap/waf-compiler:5.14.0"
+          image: "private-registry.nginx.com/nap/waf-compiler:5.15.0"
           command: ["/opt/app_protect/bin/compiler-service"]
           args:
             - "--max-concurrent"
@@ -123,7 +123,7 @@ spec:
               protocol: TCP
           env:
             - name: POLICY_COMPILER_VERSION
-              value: 5.14.0
+              value: 5.15.0
             - name: GRPC_PORT
               value: "50051"
             - name: S3_ENDPOINT
@@ -182,10 +182,10 @@ metadata:
   name: waf-policy-controller-f5-waf-policy-controller
   namespace: default
   labels:
-    helm.sh/chart: f5-waf-policy-controller-5.14.0
+    helm.sh/chart: f5-waf-policy-controller-5.15.0
     app.kubernetes.io/name: f5-waf-policy-controller
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/version: "5.14.0"
+    app.kubernetes.io/version: "5.15.0"
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: policy-controller
 spec:
@@ -240,7 +240,7 @@ spec:
               done
       containers:
         - name: policy-controller
-          image: "private-registry.nginx.com/nap/waf-policy-controller:5.14.0"
+          image: "private-registry.nginx.com/nap/waf-policy-controller:5.15.0"
           imagePullPolicy: IfNotPresent
           env:
             - name: POD_NAMESPACE
@@ -261,19 +261,23 @@ spec:
             - name: DEPLOYMENT_NAME
               value: waf-policy-controller-f5-waf-policy-controller
             - name: POLICY_COMPILER_VERSION
-              value: 5.14.0
+              value: 5.15.0
             - name: COMPILER_ADDR
-              value: "waf-policy-controller-f5-waf-compiler-service:50051"
+              value: "dns:///waf-policy-controller-f5-waf-compiler-service.default.svc.cluster.local:50051"
             - name: MAX_CONCURRENT_COMPILATIONS
-              value: "1"
+              value: "4"
             - name: S3_HOUSEKEEPING_INTERVAL
               value: "5m"
+            - name: S3_HOUSEKEEPING_GRACE_PERIOD
+              value: "10m"
             - name: S3_CLEANUP_EVERY_N_ROUNDS
               value: "5"
             - name: AWS_EC2_METADATA_DISABLED
               value: "true"
             - name: PROCESSING_TIMEOUT
               value: "10m"
+            - name: PENDING_TIMEOUT
+              value: "30m"
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -304,10 +308,10 @@ metadata:
   annotations:
     helm.sh/resource-policy: keep
   labels:
-    helm.sh/chart: f5-waf-policy-controller-5.14.0
+    helm.sh/chart: f5-waf-policy-controller-5.15.0
     app.kubernetes.io/name: f5-waf-policy-controller
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/version: "5.14.0"
+    app.kubernetes.io/version: "5.15.0"
     app.kubernetes.io/managed-by: Helm
 spec: {}
 ---
@@ -318,14 +322,14 @@ metadata:
   name: waf-policy-controller-f5-waf-seaweed
   namespace: default
   labels:
-    helm.sh/chart: f5-waf-policy-controller-5.14.0
+    helm.sh/chart: f5-waf-policy-controller-5.15.0
     app.kubernetes.io/name: f5-waf-policy-controller
     app.kubernetes.io/instance: waf-policy-controller
-    app.kubernetes.io/version: "5.14.0"
+    app.kubernetes.io/version: "5.15.0"
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: seaweedfs
 spec:
-  image: "private-registry.nginx.com/nap/waf-seaweedfs:5.14.0"
+  image: "private-registry.nginx.com/nap/waf-seaweedfs:5.15.0"
   volumeServerDiskCount: 1
   master:
     env:
@@ -339,7 +343,7 @@ spec:
         value: "1"
     replicas: 3
     requests:
-      storage: 2Gi
+      storage: 8Gi
   filer:
     persistence:
       enabled: true

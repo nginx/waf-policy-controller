@@ -3724,6 +3724,7 @@ spec:
       served: true
       storage: false
 ---
+# Source: crds/seaweed.seaweedfs.com_seaweeds.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -4662,6 +4663,8 @@ spec:
                         properties:
                           name:
                             type: string
+                          request:
+                            type: string
                         required:
                           - name
                         type: object
@@ -4701,6 +4704,23 @@ spec:
                                     type: string
                                 required:
                                   - fieldPath
+                                type: object
+                                x-kubernetes-map-type: atomic
+                              fileKeyRef:
+                                properties:
+                                  key:
+                                    type: string
+                                  optional:
+                                    default: false
+                                    type: boolean
+                                  path:
+                                    type: string
+                                  volumeName:
+                                    type: string
+                                required:
+                                  - key
+                                  - path
+                                  - volumeName
                                 type: object
                                 x-kubernetes-map-type: atomic
                               resourceFieldRef:
@@ -5130,10 +5150,12 @@ spec:
                               diskURI:
                                 type: string
                               fsType:
+                                default: ext4
                                 type: string
                               kind:
                                 type: string
                               readOnly:
+                                default: false
                                 type: boolean
                             required:
                               - diskName
@@ -5487,6 +5509,13 @@ spec:
                             required:
                               - path
                             type: object
+                          image:
+                            properties:
+                              pullPolicy:
+                                type: string
+                              reference:
+                                type: string
+                            type: object
                           iscsi:
                             properties:
                               chapAuthDiscovery:
@@ -5500,6 +5529,7 @@ spec:
                               iqn:
                                 type: string
                               iscsiInterface:
+                                default: default
                                 type: string
                               lun:
                                 type: integer
@@ -5678,6 +5708,28 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                       type: object
+                                    podCertificate:
+                                      properties:
+                                        certificateChainPath:
+                                          type: string
+                                        credentialBundlePath:
+                                          type: string
+                                        keyPath:
+                                          type: string
+                                        keyType:
+                                          type: string
+                                        maxExpirationSeconds:
+                                          type: integer
+                                        signerName:
+                                          type: string
+                                        userAnnotations:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                      required:
+                                        - keyType
+                                        - signerName
+                                      type: object
                                     secret:
                                       properties:
                                         items:
@@ -5742,6 +5794,7 @@ spec:
                               image:
                                 type: string
                               keyring:
+                                default: /etc/ceph/keyring
                                 type: string
                               monitors:
                                 items:
@@ -5749,6 +5802,7 @@ spec:
                                 type: array
                                 x-kubernetes-list-type: atomic
                               pool:
+                                default: rbd
                                 type: string
                               readOnly:
                                 type: boolean
@@ -5760,6 +5814,7 @@ spec:
                                 type: object
                                 x-kubernetes-map-type: atomic
                               user:
+                                default: admin
                                 type: string
                             required:
                               - image
@@ -5768,6 +5823,7 @@ spec:
                           scaleIO:
                             properties:
                               fsType:
+                                default: xfs
                                 type: string
                               gateway:
                                 type: string
@@ -5785,6 +5841,7 @@ spec:
                               sslEnabled:
                                 type: boolean
                               storageMode:
+                                default: ThinProvisioned
                                 type: string
                               storagePool:
                                 type: string
@@ -6323,6 +6380,8 @@ spec:
                         properties:
                           name:
                             type: string
+                          request:
+                            type: string
                         required:
                           - name
                         type: object
@@ -6366,6 +6425,23 @@ spec:
                                     type: string
                                 required:
                                   - fieldPath
+                                type: object
+                                x-kubernetes-map-type: atomic
+                              fileKeyRef:
+                                properties:
+                                  key:
+                                    type: string
+                                  optional:
+                                    default: false
+                                    type: boolean
+                                  path:
+                                    type: string
+                                  volumeName:
+                                    type: string
+                                required:
+                                  - key
+                                  - path
+                                  - volumeName
                                 type: object
                                 x-kubernetes-map-type: atomic
                               resourceFieldRef:
@@ -6686,10 +6762,12 @@ spec:
                               diskURI:
                                 type: string
                               fsType:
+                                default: ext4
                                 type: string
                               kind:
                                 type: string
                               readOnly:
+                                default: false
                                 type: boolean
                             required:
                               - diskName
@@ -7043,6 +7121,13 @@ spec:
                             required:
                               - path
                             type: object
+                          image:
+                            properties:
+                              pullPolicy:
+                                type: string
+                              reference:
+                                type: string
+                            type: object
                           iscsi:
                             properties:
                               chapAuthDiscovery:
@@ -7056,6 +7141,7 @@ spec:
                               iqn:
                                 type: string
                               iscsiInterface:
+                                default: default
                                 type: string
                               lun:
                                 type: integer
@@ -7234,6 +7320,28 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                       type: object
+                                    podCertificate:
+                                      properties:
+                                        certificateChainPath:
+                                          type: string
+                                        credentialBundlePath:
+                                          type: string
+                                        keyPath:
+                                          type: string
+                                        keyType:
+                                          type: string
+                                        maxExpirationSeconds:
+                                          type: integer
+                                        signerName:
+                                          type: string
+                                        userAnnotations:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                      required:
+                                        - keyType
+                                        - signerName
+                                      type: object
                                     secret:
                                       properties:
                                         items:
@@ -7298,6 +7406,7 @@ spec:
                               image:
                                 type: string
                               keyring:
+                                default: /etc/ceph/keyring
                                 type: string
                               monitors:
                                 items:
@@ -7305,6 +7414,7 @@ spec:
                                 type: array
                                 x-kubernetes-list-type: atomic
                               pool:
+                                default: rbd
                                 type: string
                               readOnly:
                                 type: boolean
@@ -7316,6 +7426,7 @@ spec:
                                 type: object
                                 x-kubernetes-map-type: atomic
                               user:
+                                default: admin
                                 type: string
                             required:
                               - image
@@ -7324,6 +7435,7 @@ spec:
                           scaleIO:
                             properties:
                               fsType:
+                                default: xfs
                                 type: string
                               gateway:
                                 type: string
@@ -7341,6 +7453,7 @@ spec:
                               sslEnabled:
                                 type: boolean
                               storageMode:
+                                default: ThinProvisioned
                                 type: string
                               storagePool:
                                 type: string
@@ -7891,6 +8004,8 @@ spec:
                         properties:
                           name:
                             type: string
+                          request:
+                            type: string
                         required:
                           - name
                         type: object
@@ -7932,6 +8047,23 @@ spec:
                                     type: string
                                 required:
                                   - fieldPath
+                                type: object
+                                x-kubernetes-map-type: atomic
+                              fileKeyRef:
+                                properties:
+                                  key:
+                                    type: string
+                                  optional:
+                                    default: false
+                                    type: boolean
+                                  path:
+                                    type: string
+                                  volumeName:
+                                    type: string
+                                required:
+                                  - key
+                                  - path
+                                  - volumeName
                                 type: object
                                 x-kubernetes-map-type: atomic
                               resourceFieldRef:
@@ -8258,10 +8390,12 @@ spec:
                               diskURI:
                                 type: string
                               fsType:
+                                default: ext4
                                 type: string
                               kind:
                                 type: string
                               readOnly:
+                                default: false
                                 type: boolean
                             required:
                               - diskName
@@ -8615,6 +8749,13 @@ spec:
                             required:
                               - path
                             type: object
+                          image:
+                            properties:
+                              pullPolicy:
+                                type: string
+                              reference:
+                                type: string
+                            type: object
                           iscsi:
                             properties:
                               chapAuthDiscovery:
@@ -8628,6 +8769,7 @@ spec:
                               iqn:
                                 type: string
                               iscsiInterface:
+                                default: default
                                 type: string
                               lun:
                                 type: integer
@@ -8806,6 +8948,28 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                       type: object
+                                    podCertificate:
+                                      properties:
+                                        certificateChainPath:
+                                          type: string
+                                        credentialBundlePath:
+                                          type: string
+                                        keyPath:
+                                          type: string
+                                        keyType:
+                                          type: string
+                                        maxExpirationSeconds:
+                                          type: integer
+                                        signerName:
+                                          type: string
+                                        userAnnotations:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                      required:
+                                        - keyType
+                                        - signerName
+                                      type: object
                                     secret:
                                       properties:
                                         items:
@@ -8870,6 +9034,7 @@ spec:
                               image:
                                 type: string
                               keyring:
+                                default: /etc/ceph/keyring
                                 type: string
                               monitors:
                                 items:
@@ -8877,6 +9042,7 @@ spec:
                                 type: array
                                 x-kubernetes-list-type: atomic
                               pool:
+                                default: rbd
                                 type: string
                               readOnly:
                                 type: boolean
@@ -8888,6 +9054,7 @@ spec:
                                 type: object
                                 x-kubernetes-map-type: atomic
                               user:
+                                default: admin
                                 type: string
                             required:
                               - image
@@ -8896,6 +9063,7 @@ spec:
                           scaleIO:
                             properties:
                               fsType:
+                                default: xfs
                                 type: string
                               gateway:
                                 type: string
@@ -8913,6 +9081,7 @@ spec:
                               sslEnabled:
                                 type: boolean
                               storageMode:
+                                default: ThinProvisioned
                                 type: string
                               storagePool:
                                 type: string
@@ -9437,6 +9606,8 @@ spec:
                           properties:
                             name:
                               type: string
+                            request:
+                              type: string
                           required:
                             - name
                           type: object
@@ -9478,6 +9649,23 @@ spec:
                                       type: string
                                   required:
                                     - fieldPath
+                                  type: object
+                                  x-kubernetes-map-type: atomic
+                                fileKeyRef:
+                                  properties:
+                                    key:
+                                      type: string
+                                    optional:
+                                      default: false
+                                      type: boolean
+                                    path:
+                                      type: string
+                                    volumeName:
+                                      type: string
+                                  required:
+                                    - key
+                                    - path
+                                    - volumeName
                                   type: object
                                   x-kubernetes-map-type: atomic
                                 resourceFieldRef:
@@ -9804,10 +9992,12 @@ spec:
                                 diskURI:
                                   type: string
                                 fsType:
+                                  default: ext4
                                   type: string
                                 kind:
                                   type: string
                                 readOnly:
+                                  default: false
                                   type: boolean
                               required:
                                 - diskName
@@ -10161,6 +10351,13 @@ spec:
                               required:
                                 - path
                               type: object
+                            image:
+                              properties:
+                                pullPolicy:
+                                  type: string
+                                reference:
+                                  type: string
+                              type: object
                             iscsi:
                               properties:
                                 chapAuthDiscovery:
@@ -10174,6 +10371,7 @@ spec:
                                 iqn:
                                   type: string
                                 iscsiInterface:
+                                  default: default
                                   type: string
                                 lun:
                                   type: integer
@@ -10352,6 +10550,28 @@ spec:
                                             type: array
                                             x-kubernetes-list-type: atomic
                                         type: object
+                                      podCertificate:
+                                        properties:
+                                          certificateChainPath:
+                                            type: string
+                                          credentialBundlePath:
+                                            type: string
+                                          keyPath:
+                                            type: string
+                                          keyType:
+                                            type: string
+                                          maxExpirationSeconds:
+                                            type: integer
+                                          signerName:
+                                            type: string
+                                          userAnnotations:
+                                            additionalProperties:
+                                              type: string
+                                            type: object
+                                        required:
+                                          - keyType
+                                          - signerName
+                                        type: object
                                       secret:
                                         properties:
                                           items:
@@ -10416,6 +10636,7 @@ spec:
                                 image:
                                   type: string
                                 keyring:
+                                  default: /etc/ceph/keyring
                                   type: string
                                 monitors:
                                   items:
@@ -10423,6 +10644,7 @@ spec:
                                   type: array
                                   x-kubernetes-list-type: atomic
                                 pool:
+                                  default: rbd
                                   type: string
                                 readOnly:
                                   type: boolean
@@ -10434,6 +10656,7 @@ spec:
                                   type: object
                                   x-kubernetes-map-type: atomic
                                 user:
+                                  default: admin
                                   type: string
                               required:
                                 - image
@@ -10442,6 +10665,7 @@ spec:
                             scaleIO:
                               properties:
                                 fsType:
+                                  default: xfs
                                   type: string
                                 gateway:
                                   type: string
@@ -10459,6 +10683,7 @@ spec:
                                 sslEnabled:
                                   type: boolean
                                 storageMode:
+                                  default: ThinProvisioned
                                   type: string
                                 storagePool:
                                   type: string
