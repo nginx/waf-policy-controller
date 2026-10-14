@@ -947,6 +947,76 @@ spec:
                     x-kubernetes-list-type: map
                   config:
                     type: string
+                  containerSecurityContext:
+                    properties:
+                      allowPrivilegeEscalation:
+                        type: boolean
+                      appArmorProfile:
+                        properties:
+                          localhostProfile:
+                            type: string
+                          type:
+                            type: string
+                        required:
+                        - type
+                        type: object
+                      capabilities:
+                        properties:
+                          add:
+                            items:
+                              type: string
+                            type: array
+                            x-kubernetes-list-type: atomic
+                          drop:
+                            items:
+                              type: string
+                            type: array
+                            x-kubernetes-list-type: atomic
+                        type: object
+                      privileged:
+                        type: boolean
+                      procMount:
+                        type: string
+                      readOnlyRootFilesystem:
+                        type: boolean
+                      runAsGroup:
+                        type: integer
+                      runAsNonRoot:
+                        type: boolean
+                      runAsUser:
+                        type: integer
+                      seLinuxOptions:
+                        properties:
+                          level:
+                            type: string
+                          role:
+                            type: string
+                          type:
+                            type: string
+                          user:
+                            type: string
+                        type: object
+                      seccompProfile:
+                        properties:
+                          localhostProfile:
+                            type: string
+                          type:
+                            type: string
+                        required:
+                        - type
+                        type: object
+                      windowsOptions:
+                        properties:
+                          gmsaCredentialSpec:
+                            type: string
+                          gmsaCredentialSpecName:
+                            type: string
+                          hostProcess:
+                            type: boolean
+                          runAsUserName:
+                            type: string
+                        type: object
+                    type: object
                   env:
                     items:
                       properties:
@@ -1073,6 +1143,8 @@ spec:
                         type: integer
                       grpc:
                         properties:
+                          mode:
+                            type: string
                           port:
                             type: integer
                           service:
@@ -1105,6 +1177,8 @@ spec:
                             - type: integer
                             - type: string
                             x-kubernetes-int-or-string: true
+                          protocol:
+                            type: string
                           scheme:
                             type: string
                         required:
@@ -1228,6 +1302,81 @@ spec:
                       volumeName:
                         type: string
                     type: object
+                  podSecurityContext:
+                    properties:
+                      appArmorProfile:
+                        properties:
+                          localhostProfile:
+                            type: string
+                          type:
+                            type: string
+                        required:
+                        - type
+                        type: object
+                      fsGroup:
+                        type: integer
+                      fsGroupChangePolicy:
+                        type: string
+                      runAsGroup:
+                        type: integer
+                      runAsNonRoot:
+                        type: boolean
+                      runAsUser:
+                        type: integer
+                      seLinuxChangePolicy:
+                        type: string
+                      seLinuxOptions:
+                        properties:
+                          level:
+                            type: string
+                          role:
+                            type: string
+                          type:
+                            type: string
+                          user:
+                            type: string
+                        type: object
+                      seccompProfile:
+                        properties:
+                          localhostProfile:
+                            type: string
+                          type:
+                            type: string
+                        required:
+                        - type
+                        type: object
+                      supplementalGroups:
+                        items:
+                          type: integer
+                        type: array
+                        x-kubernetes-list-type: atomic
+                      supplementalGroupsPolicy:
+                        type: string
+                      sysctls:
+                        items:
+                          properties:
+                            name:
+                              type: string
+                            value:
+                              type: string
+                          required:
+                          - name
+                          - value
+                          type: object
+                        type: array
+                        x-kubernetes-list-type: atomic
+                      windowsOptions:
+                        properties:
+                          gmsaCredentialSpec:
+                            type: string
+                          gmsaCredentialSpecName:
+                            type: string
+                          hostProcess:
+                            type: boolean
+                          runAsUserName:
+                            type: string
+                        type: object
+                    type: object
                   port:
                     type: integer
                   priorityClassName:
@@ -1246,6 +1395,8 @@ spec:
                         type: integer
                       grpc:
                         properties:
+                          mode:
+                            type: string
                           port:
                             type: integer
                           service:
@@ -1278,6 +1429,8 @@ spec:
                             - type: integer
                             - type: string
                             x-kubernetes-int-or-string: true
+                          protocol:
+                            type: string
                           scheme:
                             type: string
                         required:
@@ -1379,6 +1532,11 @@ spec:
                   volumeMounts:
                     items:
                       properties:
+                        bindMountOptions:
+                          items:
+                            type: string
+                          type: array
+                          x-kubernetes-list-type: set
                         mountPath:
                           type: string
                         mountPropagation:
@@ -1493,6 +1651,8 @@ spec:
                           properties:
                             defaultMode:
                               type: integer
+                            defaultUser:
+                              type: integer
                             items:
                               items:
                                 properties:
@@ -1502,6 +1662,8 @@ spec:
                                     type: integer
                                   path:
                                     type: string
+                                  user:
+                                    type: integer
                                 required:
                                 - key
                                 - path
@@ -1541,6 +1703,8 @@ spec:
                           properties:
                             defaultMode:
                               type: integer
+                            defaultUser:
+                              type: integer
                             items:
                               items:
                                 properties:
@@ -1574,6 +1738,8 @@ spec:
                                     - resource
                                     type: object
                                     x-kubernetes-map-type: atomic
+                                  user:
+                                    type: integer
                                 required:
                                 - path
                                 type: object
@@ -1584,6 +1750,8 @@ spec:
                           properties:
                             medium:
                               type: string
+                            mode:
+                              type: integer
                             sizeLimit:
                               anyOf:
                               - type: integer
@@ -1874,6 +2042,8 @@ spec:
                           properties:
                             defaultMode:
                               type: integer
+                            defaultUser:
+                              type: integer
                             sources:
                               items:
                                 properties:
@@ -1913,6 +2083,8 @@ spec:
                                         type: string
                                       signerName:
                                         type: string
+                                      user:
+                                        type: integer
                                     required:
                                     - path
                                     type: object
@@ -1927,6 +2099,8 @@ spec:
                                               type: integer
                                             path:
                                               type: string
+                                            user:
+                                              type: integer
                                           required:
                                           - key
                                           - path
@@ -1975,6 +2149,8 @@ spec:
                                               - resource
                                               type: object
                                               x-kubernetes-map-type: atomic
+                                            user:
+                                              type: integer
                                           required:
                                           - path
                                           type: object
@@ -1995,6 +2171,8 @@ spec:
                                         type: integer
                                       signerName:
                                         type: string
+                                      user:
+                                        type: integer
                                       userAnnotations:
                                         additionalProperties:
                                           type: string
@@ -2014,6 +2192,8 @@ spec:
                                               type: integer
                                             path:
                                               type: string
+                                            user:
+                                              type: integer
                                           required:
                                           - key
                                           - path
@@ -2035,6 +2215,8 @@ spec:
                                         type: integer
                                       path:
                                         type: string
+                                      user:
+                                        type: integer
                                     required:
                                     - path
                                     type: object
@@ -2131,6 +2313,8 @@ spec:
                           properties:
                             defaultMode:
                               type: integer
+                            defaultUser:
+                              type: integer
                             items:
                               items:
                                 properties:
@@ -2140,6 +2324,8 @@ spec:
                                     type: integer
                                   path:
                                     type: string
+                                  user:
+                                    type: integer
                                 required:
                                 - key
                                 - path
@@ -2666,6 +2852,76 @@ spec:
                     type: boolean
                   config:
                     type: string
+                  containerSecurityContext:
+                    properties:
+                      allowPrivilegeEscalation:
+                        type: boolean
+                      appArmorProfile:
+                        properties:
+                          localhostProfile:
+                            type: string
+                          type:
+                            type: string
+                        required:
+                        - type
+                        type: object
+                      capabilities:
+                        properties:
+                          add:
+                            items:
+                              type: string
+                            type: array
+                            x-kubernetes-list-type: atomic
+                          drop:
+                            items:
+                              type: string
+                            type: array
+                            x-kubernetes-list-type: atomic
+                        type: object
+                      privileged:
+                        type: boolean
+                      procMount:
+                        type: string
+                      readOnlyRootFilesystem:
+                        type: boolean
+                      runAsGroup:
+                        type: integer
+                      runAsNonRoot:
+                        type: boolean
+                      runAsUser:
+                        type: integer
+                      seLinuxOptions:
+                        properties:
+                          level:
+                            type: string
+                          role:
+                            type: string
+                          type:
+                            type: string
+                          user:
+                            type: string
+                        type: object
+                      seccompProfile:
+                        properties:
+                          localhostProfile:
+                            type: string
+                          type:
+                            type: string
+                        required:
+                        - type
+                        type: object
+                      windowsOptions:
+                        properties:
+                          gmsaCredentialSpec:
+                            type: string
+                          gmsaCredentialSpecName:
+                            type: string
+                          hostProcess:
+                            type: boolean
+                          runAsUserName:
+                            type: string
+                        type: object
+                    type: object
                   defaultReplication:
                     type: string
                   env:
@@ -2793,6 +3049,8 @@ spec:
                         type: integer
                       grpc:
                         properties:
+                          mode:
+                            type: string
                           port:
                             type: integer
                           service:
@@ -2825,6 +3083,8 @@ spec:
                             - type: integer
                             - type: string
                             x-kubernetes-int-or-string: true
+                          protocol:
+                            type: string
                           scheme:
                             type: string
                         required:
@@ -2859,6 +3119,81 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  podSecurityContext:
+                    properties:
+                      appArmorProfile:
+                        properties:
+                          localhostProfile:
+                            type: string
+                          type:
+                            type: string
+                        required:
+                        - type
+                        type: object
+                      fsGroup:
+                        type: integer
+                      fsGroupChangePolicy:
+                        type: string
+                      runAsGroup:
+                        type: integer
+                      runAsNonRoot:
+                        type: boolean
+                      runAsUser:
+                        type: integer
+                      seLinuxChangePolicy:
+                        type: string
+                      seLinuxOptions:
+                        properties:
+                          level:
+                            type: string
+                          role:
+                            type: string
+                          type:
+                            type: string
+                          user:
+                            type: string
+                        type: object
+                      seccompProfile:
+                        properties:
+                          localhostProfile:
+                            type: string
+                          type:
+                            type: string
+                        required:
+                        - type
+                        type: object
+                      supplementalGroups:
+                        items:
+                          type: integer
+                        type: array
+                        x-kubernetes-list-type: atomic
+                      supplementalGroupsPolicy:
+                        type: string
+                      sysctls:
+                        items:
+                          properties:
+                            name:
+                              type: string
+                            value:
+                              type: string
+                          required:
+                          - name
+                          - value
+                          type: object
+                        type: array
+                        x-kubernetes-list-type: atomic
+                      windowsOptions:
+                        properties:
+                          gmsaCredentialSpec:
+                            type: string
+                          gmsaCredentialSpecName:
+                            type: string
+                          hostProcess:
+                            type: boolean
+                          runAsUserName:
+                            type: string
+                        type: object
+                    type: object
                   priorityClassName:
                     type: string
                   pulseSeconds:
@@ -2877,6 +3212,8 @@ spec:
                         type: integer
                       grpc:
                         properties:
+                          mode:
+                            type: string
                           port:
                             type: integer
                           service:
@@ -2909,6 +3246,8 @@ spec:
                             - type: integer
                             - type: string
                             x-kubernetes-int-or-string: true
+                          protocol:
+                            type: string
                           scheme:
                             type: string
                         required:
@@ -2987,6 +3326,11 @@ spec:
                   volumeMounts:
                     items:
                       properties:
+                        bindMountOptions:
+                          items:
+                            type: string
+                          type: array
+                          x-kubernetes-list-type: set
                         mountPath:
                           type: string
                         mountPropagation:
@@ -3105,6 +3449,8 @@ spec:
                           properties:
                             defaultMode:
                               type: integer
+                            defaultUser:
+                              type: integer
                             items:
                               items:
                                 properties:
@@ -3114,6 +3460,8 @@ spec:
                                     type: integer
                                   path:
                                     type: string
+                                  user:
+                                    type: integer
                                 required:
                                 - key
                                 - path
@@ -3153,6 +3501,8 @@ spec:
                           properties:
                             defaultMode:
                               type: integer
+                            defaultUser:
+                              type: integer
                             items:
                               items:
                                 properties:
@@ -3186,6 +3536,8 @@ spec:
                                     - resource
                                     type: object
                                     x-kubernetes-map-type: atomic
+                                  user:
+                                    type: integer
                                 required:
                                 - path
                                 type: object
@@ -3196,6 +3548,8 @@ spec:
                           properties:
                             medium:
                               type: string
+                            mode:
+                              type: integer
                             sizeLimit:
                               anyOf:
                               - type: integer
@@ -3486,6 +3840,8 @@ spec:
                           properties:
                             defaultMode:
                               type: integer
+                            defaultUser:
+                              type: integer
                             sources:
                               items:
                                 properties:
@@ -3525,6 +3881,8 @@ spec:
                                         type: string
                                       signerName:
                                         type: string
+                                      user:
+                                        type: integer
                                     required:
                                     - path
                                     type: object
@@ -3539,6 +3897,8 @@ spec:
                                               type: integer
                                             path:
                                               type: string
+                                            user:
+                                              type: integer
                                           required:
                                           - key
                                           - path
@@ -3587,6 +3947,8 @@ spec:
                                               - resource
                                               type: object
                                               x-kubernetes-map-type: atomic
+                                            user:
+                                              type: integer
                                           required:
                                           - path
                                           type: object
@@ -3607,6 +3969,8 @@ spec:
                                         type: integer
                                       signerName:
                                         type: string
+                                      user:
+                                        type: integer
                                       userAnnotations:
                                         additionalProperties:
                                           type: string
@@ -3626,6 +3990,8 @@ spec:
                                               type: integer
                                             path:
                                               type: string
+                                            user:
+                                              type: integer
                                           required:
                                           - key
                                           - path
@@ -3647,6 +4013,8 @@ spec:
                                         type: integer
                                       path:
                                         type: string
+                                      user:
+                                        type: integer
                                     required:
                                     - path
                                     type: object
@@ -3743,6 +4111,8 @@ spec:
                           properties:
                             defaultMode:
                               type: integer
+                            defaultUser:
+                              type: integer
                             items:
                               items:
                                 properties:
@@ -3752,6 +4122,8 @@ spec:
                                     type: integer
                                   path:
                                     type: string
+                                  user:
+                                    type: integer
                                 required:
                                 - key
                                 - path
@@ -4288,6 +4660,76 @@ spec:
                     x-kubernetes-list-type: map
                   compactionMBps:
                     type: integer
+                  containerSecurityContext:
+                    properties:
+                      allowPrivilegeEscalation:
+                        type: boolean
+                      appArmorProfile:
+                        properties:
+                          localhostProfile:
+                            type: string
+                          type:
+                            type: string
+                        required:
+                        - type
+                        type: object
+                      capabilities:
+                        properties:
+                          add:
+                            items:
+                              type: string
+                            type: array
+                            x-kubernetes-list-type: atomic
+                          drop:
+                            items:
+                              type: string
+                            type: array
+                            x-kubernetes-list-type: atomic
+                        type: object
+                      privileged:
+                        type: boolean
+                      procMount:
+                        type: string
+                      readOnlyRootFilesystem:
+                        type: boolean
+                      runAsGroup:
+                        type: integer
+                      runAsNonRoot:
+                        type: boolean
+                      runAsUser:
+                        type: integer
+                      seLinuxOptions:
+                        properties:
+                          level:
+                            type: string
+                          role:
+                            type: string
+                          type:
+                            type: string
+                          user:
+                            type: string
+                        type: object
+                      seccompProfile:
+                        properties:
+                          localhostProfile:
+                            type: string
+                          type:
+                            type: string
+                        required:
+                        - type
+                        type: object
+                      windowsOptions:
+                        properties:
+                          gmsaCredentialSpec:
+                            type: string
+                          gmsaCredentialSpecName:
+                            type: string
+                          hostProcess:
+                            type: boolean
+                          runAsUserName:
+                            type: string
+                        type: object
+                    type: object
                   dataCenter:
                     type: string
                   env:
@@ -4419,6 +4861,8 @@ spec:
                         type: integer
                       grpc:
                         properties:
+                          mode:
+                            type: string
                           port:
                             type: integer
                           service:
@@ -4451,6 +4895,8 @@ spec:
                             - type: integer
                             - type: string
                             x-kubernetes-int-or-string: true
+                          protocol:
+                            type: string
                           scheme:
                             type: string
                         required:
@@ -4489,6 +4935,81 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  podSecurityContext:
+                    properties:
+                      appArmorProfile:
+                        properties:
+                          localhostProfile:
+                            type: string
+                          type:
+                            type: string
+                        required:
+                        - type
+                        type: object
+                      fsGroup:
+                        type: integer
+                      fsGroupChangePolicy:
+                        type: string
+                      runAsGroup:
+                        type: integer
+                      runAsNonRoot:
+                        type: boolean
+                      runAsUser:
+                        type: integer
+                      seLinuxChangePolicy:
+                        type: string
+                      seLinuxOptions:
+                        properties:
+                          level:
+                            type: string
+                          role:
+                            type: string
+                          type:
+                            type: string
+                          user:
+                            type: string
+                        type: object
+                      seccompProfile:
+                        properties:
+                          localhostProfile:
+                            type: string
+                          type:
+                            type: string
+                        required:
+                        - type
+                        type: object
+                      supplementalGroups:
+                        items:
+                          type: integer
+                        type: array
+                        x-kubernetes-list-type: atomic
+                      supplementalGroupsPolicy:
+                        type: string
+                      sysctls:
+                        items:
+                          properties:
+                            name:
+                              type: string
+                            value:
+                              type: string
+                          required:
+                          - name
+                          - value
+                          type: object
+                        type: array
+                        x-kubernetes-list-type: atomic
+                      windowsOptions:
+                        properties:
+                          gmsaCredentialSpec:
+                            type: string
+                          gmsaCredentialSpecName:
+                            type: string
+                          hostProcess:
+                            type: boolean
+                          runAsUserName:
+                            type: string
+                        type: object
+                    type: object
                   priorityClassName:
                     type: string
                   rack:
@@ -4507,6 +5028,8 @@ spec:
                         type: integer
                       grpc:
                         properties:
+                          mode:
+                            type: string
                           port:
                             type: integer
                           service:
@@ -4539,6 +5062,8 @@ spec:
                             - type: integer
                             - type: string
                             x-kubernetes-int-or-string: true
+                          protocol:
+                            type: string
                           scheme:
                             type: string
                         required:
@@ -4619,6 +5144,11 @@ spec:
                   volumeMounts:
                     items:
                       properties:
+                        bindMountOptions:
+                          items:
+                            type: string
+                          type: array
+                          x-kubernetes-list-type: set
                         mountPath:
                           type: string
                         mountPropagation:
@@ -4733,6 +5263,8 @@ spec:
                           properties:
                             defaultMode:
                               type: integer
+                            defaultUser:
+                              type: integer
                             items:
                               items:
                                 properties:
@@ -4742,6 +5274,8 @@ spec:
                                     type: integer
                                   path:
                                     type: string
+                                  user:
+                                    type: integer
                                 required:
                                 - key
                                 - path
@@ -4781,6 +5315,8 @@ spec:
                           properties:
                             defaultMode:
                               type: integer
+                            defaultUser:
+                              type: integer
                             items:
                               items:
                                 properties:
@@ -4814,6 +5350,8 @@ spec:
                                     - resource
                                     type: object
                                     x-kubernetes-map-type: atomic
+                                  user:
+                                    type: integer
                                 required:
                                 - path
                                 type: object
@@ -4824,6 +5362,8 @@ spec:
                           properties:
                             medium:
                               type: string
+                            mode:
+                              type: integer
                             sizeLimit:
                               anyOf:
                               - type: integer
@@ -5114,6 +5654,8 @@ spec:
                           properties:
                             defaultMode:
                               type: integer
+                            defaultUser:
+                              type: integer
                             sources:
                               items:
                                 properties:
@@ -5153,6 +5695,8 @@ spec:
                                         type: string
                                       signerName:
                                         type: string
+                                      user:
+                                        type: integer
                                     required:
                                     - path
                                     type: object
@@ -5167,6 +5711,8 @@ spec:
                                               type: integer
                                             path:
                                               type: string
+                                            user:
+                                              type: integer
                                           required:
                                           - key
                                           - path
@@ -5215,6 +5761,8 @@ spec:
                                               - resource
                                               type: object
                                               x-kubernetes-map-type: atomic
+                                            user:
+                                              type: integer
                                           required:
                                           - path
                                           type: object
@@ -5235,6 +5783,8 @@ spec:
                                         type: integer
                                       signerName:
                                         type: string
+                                      user:
+                                        type: integer
                                       userAnnotations:
                                         additionalProperties:
                                           type: string
@@ -5254,6 +5804,8 @@ spec:
                                               type: integer
                                             path:
                                               type: string
+                                            user:
+                                              type: integer
                                           required:
                                           - key
                                           - path
@@ -5275,6 +5827,8 @@ spec:
                                         type: integer
                                       path:
                                         type: string
+                                      user:
+                                        type: integer
                                     required:
                                     - path
                                     type: object
@@ -5371,6 +5925,8 @@ spec:
                           properties:
                             defaultMode:
                               type: integer
+                            defaultUser:
+                              type: integer
                             items:
                               items:
                                 properties:
@@ -5380,6 +5936,8 @@ spec:
                                     type: integer
                                   path:
                                     type: string
+                                  user:
+                                    type: integer
                                 required:
                                 - key
                                 - path
@@ -5890,6 +6448,76 @@ spec:
                       x-kubernetes-list-type: map
                     compactionMBps:
                       type: integer
+                    containerSecurityContext:
+                      properties:
+                        allowPrivilegeEscalation:
+                          type: boolean
+                        appArmorProfile:
+                          properties:
+                            localhostProfile:
+                              type: string
+                            type:
+                              type: string
+                          required:
+                          - type
+                          type: object
+                        capabilities:
+                          properties:
+                            add:
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: atomic
+                            drop:
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: atomic
+                          type: object
+                        privileged:
+                          type: boolean
+                        procMount:
+                          type: string
+                        readOnlyRootFilesystem:
+                          type: boolean
+                        runAsGroup:
+                          type: integer
+                        runAsNonRoot:
+                          type: boolean
+                        runAsUser:
+                          type: integer
+                        seLinuxOptions:
+                          properties:
+                            level:
+                              type: string
+                            role:
+                              type: string
+                            type:
+                              type: string
+                            user:
+                              type: string
+                          type: object
+                        seccompProfile:
+                          properties:
+                            localhostProfile:
+                              type: string
+                            type:
+                              type: string
+                          required:
+                          - type
+                          type: object
+                        windowsOptions:
+                          properties:
+                            gmsaCredentialSpec:
+                              type: string
+                            gmsaCredentialSpecName:
+                              type: string
+                            hostProcess:
+                              type: boolean
+                            runAsUserName:
+                              type: string
+                          type: object
+                      type: object
                     dataCenter:
                       type: string
                     env:
@@ -6021,6 +6649,8 @@ spec:
                           type: integer
                         grpc:
                           properties:
+                            mode:
+                              type: string
                             port:
                               type: integer
                             service:
@@ -6053,6 +6683,8 @@ spec:
                               - type: integer
                               - type: string
                               x-kubernetes-int-or-string: true
+                            protocol:
+                              type: string
                             scheme:
                               type: string
                           required:
@@ -6091,6 +6723,81 @@ spec:
                       additionalProperties:
                         type: string
                       type: object
+                    podSecurityContext:
+                      properties:
+                        appArmorProfile:
+                          properties:
+                            localhostProfile:
+                              type: string
+                            type:
+                              type: string
+                          required:
+                          - type
+                          type: object
+                        fsGroup:
+                          type: integer
+                        fsGroupChangePolicy:
+                          type: string
+                        runAsGroup:
+                          type: integer
+                        runAsNonRoot:
+                          type: boolean
+                        runAsUser:
+                          type: integer
+                        seLinuxChangePolicy:
+                          type: string
+                        seLinuxOptions:
+                          properties:
+                            level:
+                              type: string
+                            role:
+                              type: string
+                            type:
+                              type: string
+                            user:
+                              type: string
+                          type: object
+                        seccompProfile:
+                          properties:
+                            localhostProfile:
+                              type: string
+                            type:
+                              type: string
+                          required:
+                          - type
+                          type: object
+                        supplementalGroups:
+                          items:
+                            type: integer
+                          type: array
+                          x-kubernetes-list-type: atomic
+                        supplementalGroupsPolicy:
+                          type: string
+                        sysctls:
+                          items:
+                            properties:
+                              name:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - name
+                            - value
+                            type: object
+                          type: array
+                          x-kubernetes-list-type: atomic
+                        windowsOptions:
+                          properties:
+                            gmsaCredentialSpec:
+                              type: string
+                            gmsaCredentialSpecName:
+                              type: string
+                            hostProcess:
+                              type: boolean
+                            runAsUserName:
+                              type: string
+                          type: object
+                      type: object
                     priorityClassName:
                       type: string
                     rack:
@@ -6109,6 +6816,8 @@ spec:
                           type: integer
                         grpc:
                           properties:
+                            mode:
+                              type: string
                             port:
                               type: integer
                             service:
@@ -6141,6 +6850,8 @@ spec:
                               - type: integer
                               - type: string
                               x-kubernetes-int-or-string: true
+                            protocol:
+                              type: string
                             scheme:
                               type: string
                           required:
@@ -6221,6 +6932,11 @@ spec:
                     volumeMounts:
                       items:
                         properties:
+                          bindMountOptions:
+                            items:
+                              type: string
+                            type: array
+                            x-kubernetes-list-type: set
                           mountPath:
                             type: string
                           mountPropagation:
@@ -6335,6 +7051,8 @@ spec:
                             properties:
                               defaultMode:
                                 type: integer
+                              defaultUser:
+                                type: integer
                               items:
                                 items:
                                   properties:
@@ -6344,6 +7062,8 @@ spec:
                                       type: integer
                                     path:
                                       type: string
+                                    user:
+                                      type: integer
                                   required:
                                   - key
                                   - path
@@ -6383,6 +7103,8 @@ spec:
                             properties:
                               defaultMode:
                                 type: integer
+                              defaultUser:
+                                type: integer
                               items:
                                 items:
                                   properties:
@@ -6416,6 +7138,8 @@ spec:
                                       - resource
                                       type: object
                                       x-kubernetes-map-type: atomic
+                                    user:
+                                      type: integer
                                   required:
                                   - path
                                   type: object
@@ -6426,6 +7150,8 @@ spec:
                             properties:
                               medium:
                                 type: string
+                              mode:
+                                type: integer
                               sizeLimit:
                                 anyOf:
                                 - type: integer
@@ -6716,6 +7442,8 @@ spec:
                             properties:
                               defaultMode:
                                 type: integer
+                              defaultUser:
+                                type: integer
                               sources:
                                 items:
                                   properties:
@@ -6755,6 +7483,8 @@ spec:
                                           type: string
                                         signerName:
                                           type: string
+                                        user:
+                                          type: integer
                                       required:
                                       - path
                                       type: object
@@ -6769,6 +7499,8 @@ spec:
                                                 type: integer
                                               path:
                                                 type: string
+                                              user:
+                                                type: integer
                                             required:
                                             - key
                                             - path
@@ -6817,6 +7549,8 @@ spec:
                                                 - resource
                                                 type: object
                                                 x-kubernetes-map-type: atomic
+                                              user:
+                                                type: integer
                                             required:
                                             - path
                                             type: object
@@ -6837,6 +7571,8 @@ spec:
                                           type: integer
                                         signerName:
                                           type: string
+                                        user:
+                                          type: integer
                                         userAnnotations:
                                           additionalProperties:
                                             type: string
@@ -6856,6 +7592,8 @@ spec:
                                                 type: integer
                                               path:
                                                 type: string
+                                              user:
+                                                type: integer
                                             required:
                                             - key
                                             - path
@@ -6877,6 +7615,8 @@ spec:
                                           type: integer
                                         path:
                                           type: string
+                                        user:
+                                          type: integer
                                       required:
                                       - path
                                       type: object
@@ -6973,6 +7713,8 @@ spec:
                             properties:
                               defaultMode:
                                 type: integer
+                              defaultUser:
+                                type: integer
                               items:
                                 items:
                                   properties:
@@ -6982,6 +7724,8 @@ spec:
                                       type: integer
                                     path:
                                       type: string
+                                    user:
+                                      type: integer
                                   required:
                                   - key
                                   - path
