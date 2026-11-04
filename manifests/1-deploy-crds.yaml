@@ -1,5 +1,5 @@
 ---
-# Source: crds/appprotect.f5.com_aplogconfs.yaml
+# Source: f5-waf-policy-controller/crds/appprotect.f5.com_aplogconfs.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -249,7 +249,7 @@ spec:
       served: true
       storage: false
 ---
-# Source: crds/appprotect.f5.com_appolicies.yaml
+# Source: f5-waf-policy-controller/crds/appprotect.f5.com_appolicies.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -3253,7 +3253,7 @@ spec:
       served: true
       storage: false
 ---
-# Source: crds/appprotect.f5.com_apsignatures.yaml
+# Source: f5-waf-policy-controller/crds/appprotect.f5.com_apsignatures.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -3474,7 +3474,7 @@ spec:
       subresources:
         status: {}
 ---
-# Source: crds/appprotect.f5.com_apusersigs.yaml
+# Source: f5-waf-policy-controller/crds/appprotect.f5.com_apusersigs.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -3724,7 +3724,7 @@ spec:
       served: true
       storage: false
 ---
-# Source: crds/seaweed.seaweedfs.com_seaweeds.yaml
+# Source: f5-waf-policy-controller/charts/seaweedfs-operator/crds/seaweed.seaweedfs.com_seaweeds.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
